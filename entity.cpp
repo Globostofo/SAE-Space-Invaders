@@ -61,14 +61,14 @@ void getShot(MinGL &window, entityInfos &Entity, bool &canShoot, bool &startTime
     }
 }
 
-void hasBeenShot(MinGL &window , entityInfos &Entity){
-    nsShape::Rectangle rect1(nsGraphics::Vec2D(20, 20), nsGraphics::Vec2D(50, 50), nsGraphics::KBlue);
-    window << rect1;
-        for(auto iter = Entity.bullets.begin(); iter !=Entity.bullets.end(); ){
+void hasBeenShot(entityInfos &EntityShooting,entityInfos &Target){
+        nsShape::Rectangle entityShotHitBox(Target.entity.getPosition(),Target.entity.computeSize(), nsGraphics::KBlue);//color inutile
+        for(auto iter = EntityShooting.bullets.begin(); iter !=EntityShooting.bullets.end(); ){
             nsGraphics::Vec2D bullet((*iter).getPosition().getX(),(*iter).getPosition().getY());
-            if(bullet.isColliding(rect1.getFirstPosition(),rect1.getSecondPosition())){
-                Entity.bullets.erase(iter);
+            if(bullet.isColliding(entityShotHitBox.getFirstPosition(),entityShotHitBox.getSecondPosition())){
+                EntityShooting.bullets.erase(iter);
                 cout<<"la balle a touche"<<endl;
+                Target.lifePoints-=1; //faire fonct hasBeenKilled
             }
             else{
                 ++iter;
@@ -149,7 +149,7 @@ int main()
 
         showEntity(window,player);
         showBullet(window,player,constantes::playerBulletDirection);
-        hasBeenShot(window, player);
+        //hasBeenShot(player,enemy); if player shoots and target = enemy -> loop to check every enemy element in the struct
 
 
         // On finit la frame en cours
