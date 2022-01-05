@@ -27,7 +27,7 @@ namespace constantes {
 
 struct elements{
     nsGui::Sprite bullet = nsGui::Sprite(constantes::bulletSprite,nsGraphics::Vec2D(0, 0));
-    vector<nsGui::Sprite> projectiles;
+    vector<nsGui::Sprite> projectiles;//vector<nsGui::Sprite>::iterator projectiles;
     nsGui::Sprite player = nsGui::Sprite(constantes::playerSprite,nsGraphics::Vec2D(20, 20));
     unsigned lives = 3;
 };
@@ -68,7 +68,7 @@ void dessinerPersos(MinGL &window, elements listeProjects)
 //        window << (*iter);
 //        (*iter).setPosition(nsGraphics::Vec2D((*iter).getPosition().getX() ,(*iter).getPosition().getY()-10));
 //    }
-//}//placerProjectile en utilisant iterator
+//}
 void placerProjectile(MinGL &window, elements &listeProjects){
     for(unsigned i = 0; i<listeProjects.projectiles.size(); ++i){
         window<<listeProjects.projectiles[i];
