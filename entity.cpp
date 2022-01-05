@@ -20,10 +20,10 @@ using namespace std;
 namespace constantes {
     const int WinwodX= 1500;
     const int WinwodY= 800;
-    const string playerBulletSprite = "res/windowsBullet.si2";
-    const string playerSprite = "res/windows.si2";
+    const string playerBulletSprite = "res/laser-windo.si2";
+    const string playerSprite = "res/Windo.si2";
 
-    const string enemyBulletSprite = "res/windowsBullet.si2";
+    const string enemyBulletSprite = "res/ls-aux.si2";
     const string invaderSprite = "res/linux.si2";
     const int nbOfInvaders = 5;
 
@@ -74,12 +74,13 @@ void hasBeenShot(MinGL &window , entityInfos &Entity){
             }
         }
 }
+
 void initInvadersList (vector<entityInfos> &invaders){
-    for(entityInfos &invader : invaders){
-        invader = {nsGui::Sprite(constantes::invaderSprite,nsGraphics::Vec2D(0, 0)),
-                3,
-                nsGui::Sprite(constantes::enemyBulletSprite,nsGraphics::Vec2D(0, 0)),
-                vector<nsGui::Sprite>(0)};
+    for(int i=0; i<constantes::nbOfInvaders; ++i) {
+        invaders.push_back(entityInfos {nsGui::Sprite(constantes::invaderSprite,nsGraphics::Vec2D(0, 0)),
+                                3,
+                                nsGui::Sprite(constantes::enemyBulletSprite,nsGraphics::Vec2D(0, 0)),
+                                vector<nsGui::Sprite>{}});
     }
 }
 
@@ -97,9 +98,9 @@ int main()
     entityInfos player{nsGui::Sprite(constantes::playerSprite,nsGraphics::Vec2D(0, 0)),
                       3,
                       nsGui::Sprite(constantes::playerBulletSprite,nsGraphics::Vec2D(0, 0)),
-                      vector<nsGui::Sprite>(0)};
+                      vector<nsGui::Sprite>{}};
     //Init Invader list
-    vector<entityInfos> invaders (constantes::nbOfInvaders);
+    vector<entityInfos> invaders;
     initInvadersList(invaders);
 
     // On fait tourner la boucle tant que la fenêtre est ouverte
