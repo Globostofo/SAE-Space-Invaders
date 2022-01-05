@@ -20,26 +20,55 @@ using namespace std;
 namespace constantes {
     const int WinwodX= 1500;
     const int WinwodY= 800;
-    const int speed = 10;
-    const string bulletSprite = "res/windowsBullet.si2";
+    const string playerBulletSprite = "res/windowsBullet.si2";
     const string playerSprite = "res/windows.si2";
+
+    const string enemyBulletSprite = "res/windowsBullet.si2";
+    const string invaderSprite = "res/linux.si2";
+    const unsigned nbOfInvaders = 5;
+
+    const int playerBulletDirection = -10;
+    const int enemyBulletDirection = 10;
+    const int speed = 10;
 }
 
-struct elements{
-    nsGui::Sprite bullet = nsGui::Sprite(constantes::bulletSprite,nsGraphics::Vec2D(0, 0));
-    vector<nsGui::Sprite> projectiles;//vector<nsGui::Sprite>::iterator projectiles;
-    nsGui::Sprite player = nsGui::Sprite(constantes::playerSprite,nsGraphics::Vec2D(20, 20));
-    unsigned lives = 3;
+struct entityInfos{
+    nsGui::Sprite entity; // nsGui::Sprite("",nsGraphics::Vec2D(0, 0));
+    unsigned lifePoints;
+    nsGui::Sprite entityBullet;// nsGui::Sprite("",nsGraphics::Vec2D(0, 0));
+    vector<nsGui::Sprite> bullets;
 };
 
-void hasBeenShot(MinGL &window , elements &listeProjects){
-    nsShape::Rectangle rect1(nsGraphics::Vec2D(20, 20), nsGraphics::Vec2D(50, 50), nsGraphics::KBlue);
-    window << rect1;
-        for(auto iter = listeProjects.projectiles.begin(); iter !=listeProjects.projectiles.end(); ){
+void showEntity(MinGL &window, entityInfos Entity)
+{
+    window << Entity.entity;
+}
+
+void showBullet(MinGL &window, entityInfos &Entity, int direction){
+    for(unsigned i = 0; i<Entity.bullets.size(); ++i){
+        window<<Entity.bullets[i];
+        Entity.bullets[i].setPosition(nsGraphics::Vec2D(Entity.bullets[i].getPosition().getX(),Entity.bullets[i].getPosition().getY()+direction));
+    }
+}
+
+void getShot(MinGL &window, entityInfos &Entity, bool &canShoot, bool &startTimer){
+    if(window.isPressed({' ',false}) && canShoot){
+        canShoot = false;
+        startTimer = true;
+        nsGui::Sprite bulletToAdd =Entity.entityBullet;
+        bulletToAdd.setPosition(nsGraphics::Vec2D(Entity.entity.getPosition().getX()+Entity.entity.computeSize().getX()/2-Entity.entityBullet.computeSize().getX()/2, Entity.entity.getPosition().getY()));
+        Entity.bullets.push_back(bulletToAdd);
+    }
+}
+
+void hasBeenShot(entityInfos &EntityShooting,entityInfos &Target){
+        nsShape::Rectangle entityShotHitBox(Target.entity.getPosition(),Target.entity.computeSize(), nsGraphics::KBlue);//color inutile
+        for(auto iter = EntityShooting.bullets.begin(); iter !=EntityShooting.bullets.end(); ){
             nsGraphics::Vec2D bullet((*iter).getPosition().getX(),(*iter).getPosition().getY());
-            if(bullet.isColliding(rect1.getFirstPosition(),rect1.getSecondPosition())){
-                listeProjects.projectiles.erase(iter);
+            if(bullet.isColliding(entityShotHitBox.getFirstPosition(),entityShotHitBox.getSecondPosition())){
+                EntityShooting.bullets.erase(iter);
                 cout<<"la balle a touche"<<endl;
+                Target.lifePoints-=1; //faire fonct hasBeenKilled
             }
             else{
                 ++iter;
@@ -47,59 +76,31 @@ void hasBeenShot(MinGL &window , elements &listeProjects){
         }
 }
 
-void dessinerPersos(MinGL &window, elements listeProjects)
-{
-    // On dessine le player
-    window << listeProjects.player;
-}
-
-
-//void placerProjectile(MinGL &window, elements &listeProjects){
-//    for(auto iter = listeProjects.projectiles.begin(); iter !=listeProjects.projectiles.end(); ){
-//        if((*iter).getPosition().getX() < 0){
-//            listeProjects.projectiles.erase(iter);
-//        }
-//        else{
-//            ++iter;
-//        }
-//        window<<listeProjects.projectiles[0];//debug
-//        cout<<listeProjects.projectiles.size()<<endl;//debug
-//        cout<<(*iter).getPosition();//debug
-//        window << (*iter);
-//        (*iter).setPosition(nsGraphics::Vec2D((*iter).getPosition().getX() ,(*iter).getPosition().getY()-10));
-//    }
-//}
-void placerProjectile(MinGL &window, elements &listeProjects){
-    for(unsigned i = 0; i<listeProjects.projectiles.size(); ++i){
-        window<<listeProjects.projectiles[i];
-        listeProjects.projectiles[i].setPosition(nsGraphics::Vec2D(listeProjects.projectiles[i].getPosition().getX(),listeProjects.projectiles[i].getPosition().getY()-10));
-    }
-}
-void getShot(MinGL &window, elements &listeProjects, bool &canShoot, bool &startTimer){
-    if(window.isPressed({' ',false}) && canShoot){
-        canShoot = false;
-        startTimer = true;
-        nsGui::Sprite bulletToAdd =listeProjects.bullet;
-        bulletToAdd.setPosition(nsGraphics::Vec2D(listeProjects.player.getPosition().getX()+listeProjects.player.computeSize().getX()/2-listeProjects.bullet.computeSize().getX()/2, listeProjects.player.getPosition().getY()));
-        listeProjects.projectiles.push_back(bulletToAdd);
-    }
-}
-void clavier(MinGL &window,elements &listeProjects)
+void getPlayerMoves(MinGL &window,entityInfos &Entity)
 {
 
     // On vérifie si ZQSD est pressé, et met a jour la position
         if (window.isPressed({'z', false}))
-            if(listeProjects.player.getPosition().getY()>0 && listeProjects.player.getPosition().getY()-constantes::speed<constantes::WinwodY)
-                 listeProjects.player.setPosition(nsGraphics::Vec2D( listeProjects.player.getPosition().getX(),listeProjects.player.getPosition().getY() - constantes::speed));
+            if(Entity.entity.getPosition().getY()>0 && Entity.entity.getPosition().getY()-constantes::speed<constantes::WinwodY)
+                 Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX(),Entity.entity.getPosition().getY() - constantes::speed));
         if (window.isPressed({'s', false}))
-            if(listeProjects.player.getPosition().getY()>=0 && (listeProjects.player.getPosition().getY()+constantes::speed+listeProjects.player.computeSize().getY())<=constantes::WinwodY)
-                listeProjects.player.setPosition(nsGraphics::Vec2D( listeProjects.player.getPosition().getX(),listeProjects.player.getPosition().getY() + constantes::speed));
+            if(Entity.entity.getPosition().getY()>=0 && (Entity.entity.getPosition().getY()+constantes::speed+Entity.entity.computeSize().getY())<=constantes::WinwodY)
+                Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX(),Entity.entity.getPosition().getY() + constantes::speed));
         if (window.isPressed({'q', false}))
-            if(listeProjects.player.getPosition().getX()>0 && listeProjects.player.getPosition().getX()-constantes::speed<constantes::WinwodX)
-                listeProjects.player.setPosition(nsGraphics::Vec2D( listeProjects.player.getPosition().getX()-constantes::speed,listeProjects.player.getPosition().getY()));
+            if(Entity.entity.getPosition().getX()>0 && Entity.entity.getPosition().getX()-constantes::speed<constantes::WinwodX)
+                Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX()-constantes::speed,Entity.entity.getPosition().getY()));
         if (window.isPressed({'d', false}))
-            if(listeProjects.player.getPosition().getX()>=0 && (listeProjects.player.getPosition().getX()+constantes::speed+listeProjects.player.computeSize().getX())<constantes::WinwodX)
-                listeProjects.player.setPosition(nsGraphics::Vec2D( listeProjects.player.getPosition().getX()+constantes::speed,listeProjects.player.getPosition().getY()));
+            if(Entity.entity.getPosition().getX()>=0 && (Entity.entity.getPosition().getX()+constantes::speed+Entity.entity.computeSize().getX())<constantes::WinwodX)
+                Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX()+constantes::speed,Entity.entity.getPosition().getY()));
+}
+
+void initInvadersList (vector<entityInfos> &invaders){
+    for(unsigned i =0; i<constantes::nbOfInvaders ; ++i){
+        invaders.push_back({nsGui::Sprite(constantes::invaderSprite,nsGraphics::Vec2D(0, 0)),
+                3,
+                nsGui::Sprite(constantes::enemyBulletSprite,nsGraphics::Vec2D(0, 0)),
+                vector<nsGui::Sprite>{}});
+    }
 }
 
 int main()
@@ -112,8 +113,16 @@ int main()
     // Variable qui tient le temps de frame
     chrono::microseconds frameTime = chrono::microseconds::zero();
 
-    // Variable qui contient les pojectiles, du temps entre les tirs
-    elements listeProjects;
+    // Init Player
+    entityInfos player{nsGui::Sprite(constantes::playerSprite,nsGraphics::Vec2D(500, 500)),
+                      3,
+                      nsGui::Sprite(constantes::playerBulletSprite,nsGraphics::Vec2D(0, 0)),
+                vector<nsGui::Sprite>{}};
+    //Init Invader list
+    vector<entityInfos> invaders;
+    initInvadersList(invaders);
+
+    //Init shooting variables for delay
     bool canShoot = true;
     chrono::steady_clock::time_point startShoot = chrono::steady_clock::now();
     chrono::steady_clock::time_point lastShot;
@@ -128,7 +137,6 @@ int main()
         // On efface la fenêtre
         window.clearScreen();
         // On fait tourner les procédures
-
         if(startTimer){
             lastShot = chrono::steady_clock::now();
             if(chrono::duration_cast<chrono::milliseconds> (lastShot - startShoot).count() > 500){
@@ -136,12 +144,13 @@ int main()
                 canShoot=true;
             }
         }
-        getShot(window,listeProjects, canShoot,startTimer);
-        clavier(window,listeProjects);
+        getShot(window,player, canShoot,startTimer);
+        getPlayerMoves(window,player);
 
-        dessinerPersos(window,listeProjects);
-        placerProjectile(window,listeProjects);
-        hasBeenShot(window, listeProjects);
+        showEntity(window,player);
+        showBullet(window,player,constantes::playerBulletDirection);
+        //hasBeenShot(player,enemy); if player shoots and target = enemy -> loop to check every enemy element in the struct
+
 
         // On finit la frame en cours
         window.finishFrame();
@@ -157,3 +166,4 @@ int main()
     }
     return 0;
 }
+
