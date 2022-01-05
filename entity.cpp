@@ -20,15 +20,16 @@ using namespace std;
 namespace constantes {
     const int WinwodX= 1500;
     const int WinwodY= 800;
-    const string playerBulletSprite = "res/laser-windo.si2";
-    const string playerSprite = "res/Windo.si2";
+    const string playerBulletSprite = "res/windowsBullet.si2";
+    const string playerSprite = "res/windows.si2";
 
-    const string enemyBulletSprite = "res/ls-aux.si2";
+    const string enemyBulletSprite = "res/windowsBullet.si2";
     const string invaderSprite = "res/linux.si2";
-    const int nbOfInvaders = 5;
+    const unsigned nbOfInvaders = 5;
 
     const int playerBulletDirection = -10;
     const int enemyBulletDirection = 10;
+    const int speed = 10;
 }
 
 struct entityInfos{
@@ -75,12 +76,30 @@ void hasBeenShot(MinGL &window , entityInfos &Entity){
         }
 }
 
+void getPlayerMoves(MinGL &window,entityInfos &Entity)
+{
+
+    // On vérifie si ZQSD est pressé, et met a jour la position
+        if (window.isPressed({'z', false}))
+            if(Entity.entity.getPosition().getY()>0 && Entity.entity.getPosition().getY()-constantes::speed<constantes::WinwodY)
+                 Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX(),Entity.entity.getPosition().getY() - constantes::speed));
+        if (window.isPressed({'s', false}))
+            if(Entity.entity.getPosition().getY()>=0 && (Entity.entity.getPosition().getY()+constantes::speed+Entity.entity.computeSize().getY())<=constantes::WinwodY)
+                Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX(),Entity.entity.getPosition().getY() + constantes::speed));
+        if (window.isPressed({'q', false}))
+            if(Entity.entity.getPosition().getX()>0 && Entity.entity.getPosition().getX()-constantes::speed<constantes::WinwodX)
+                Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX()-constantes::speed,Entity.entity.getPosition().getY()));
+        if (window.isPressed({'d', false}))
+            if(Entity.entity.getPosition().getX()>=0 && (Entity.entity.getPosition().getX()+constantes::speed+Entity.entity.computeSize().getX())<constantes::WinwodX)
+                Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX()+constantes::speed,Entity.entity.getPosition().getY()));
+}
+
 void initInvadersList (vector<entityInfos> &invaders){
-    for(int i=0; i<constantes::nbOfInvaders; ++i) {
-        invaders.push_back(entityInfos {nsGui::Sprite(constantes::invaderSprite,nsGraphics::Vec2D(0, 0)),
-                                3,
-                                nsGui::Sprite(constantes::enemyBulletSprite,nsGraphics::Vec2D(0, 0)),
-                                vector<nsGui::Sprite>{}});
+    for(unsigned i =0; i<constantes::nbOfInvaders ; ++i){
+        invaders.push_back({nsGui::Sprite(constantes::invaderSprite,nsGraphics::Vec2D(0, 0)),
+                3,
+                nsGui::Sprite(constantes::enemyBulletSprite,nsGraphics::Vec2D(0, 0)),
+                vector<nsGui::Sprite>{}});
     }
 }
 
@@ -95,13 +114,19 @@ int main()
     chrono::microseconds frameTime = chrono::microseconds::zero();
 
     // Init Player
-    entityInfos player{nsGui::Sprite(constantes::playerSprite,nsGraphics::Vec2D(0, 0)),
+    entityInfos player{nsGui::Sprite(constantes::playerSprite,nsGraphics::Vec2D(500, 500)),
                       3,
                       nsGui::Sprite(constantes::playerBulletSprite,nsGraphics::Vec2D(0, 0)),
-                      vector<nsGui::Sprite>{}};
+                vector<nsGui::Sprite>{}};
     //Init Invader list
     vector<entityInfos> invaders;
     initInvadersList(invaders);
+
+    //Init shooting variables for delay
+    bool canShoot = true;
+    chrono::steady_clock::time_point startShoot = chrono::steady_clock::now();
+    chrono::steady_clock::time_point lastShot;
+    bool startTimer = false;
 
     // On fait tourner la boucle tant que la fenêtre est ouverte
     while (window.isOpen())
@@ -112,6 +137,19 @@ int main()
         // On efface la fenêtre
         window.clearScreen();
         // On fait tourner les procédures
+        if(startTimer){
+            lastShot = chrono::steady_clock::now();
+            if(chrono::duration_cast<chrono::milliseconds> (lastShot - startShoot).count() > 500){
+                startShoot = chrono::steady_clock::now();
+                canShoot=true;
+            }
+        }
+        getShot(window,player, canShoot,startTimer);
+        getPlayerMoves(window,player);
+
+        showEntity(window,player);
+        showBullet(window,player,constantes::playerBulletDirection);
+        hasBeenShot(window, player);
 
 
         // On finit la frame en cours
