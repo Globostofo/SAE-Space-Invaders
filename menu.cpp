@@ -4,16 +4,6 @@
   * @brief fichier permettant de créer des menus pour commencer le jeu
 **/
 
-#define FPS_LIMIT 60
-
-#include <iostream>
-#include <thread>
-
-#include "mingl/shape/rectangle.h"
-#include "mingl/mingl.h"
-#include "mingl/gui/text.h"
-#include "mingl/shape/line.h"
-#include "mingl/event/event.hpp"
 #include "menu.h"
 
 using namespace std;
@@ -33,25 +23,22 @@ using namespace std;
 //};
 
 
-void events(MinGL &window,vector<boutons> &b)
+void events(nsEvent::EventManager &eventM, const vector<button> &btns)
 {
     // On vérifie chaque évènement de la queue d'évènements
-    while (window.getEventManager().hasEvent())
+    while (eventM.hasEvent())
     {
-        const nsEvent::Event_t actualEvent = window.getEventManager().pullEvent();
+        const nsEvent::Event_t event = eventM.pullEvent();
 
         // On regarde le type d'évènement
-
-        if(actualEvent.eventType==nsEvent::EventType_t::MouseClick){
-            for(const boutons & bouton : b){
-
-                if((actualEvent.eventData.clickData.x>bouton.x_sup)
-                        &&(actualEvent.eventData.clickData.x<bouton.x_inf)
-                        &&(actualEvent.eventData.clickData.y>bouton.y_sup)
-                        &&(actualEvent.eventData.clickData.y<bouton.y_inf)){
-
-                    cout<<"Hello"<<endl;
-                }
+        nsEvent::MouseClickData_t data = event.eventData.clickData;
+        nsGraphics::Vec2D eventPos{data.x, data.y};
+        if(event.eventType==nsEvent::EventType_t::MouseClick && !data.button && !data.state){
+            cout << endl << "A click : " << eventPos << endl;
+            for(const button & btn : btns) {
+                cout << btn.content << " at pos : " << btn.rect.getFirstPosition() << " | " << btn.rect.getSecondPosition() << endl;
+                if (eventPos.isColliding(btn.rect.getFirstPosition(), btn.rect.getSecondPosition()))
+                    cout << btn.content << endl;
             }
         }
     }
@@ -60,37 +47,40 @@ void events(MinGL &window,vector<boutons> &b)
 
 /*!
   * @brief fonction pour placer des boutons centrés horizontalement et verticalement
-  * @param[in out] window : fenetre
+  * @param[in/out] window : fenetre
   * @param[in] b : vecteur de struct contenant le texte à afficher et la couleur dans laquelle l'afficher
   * @param[in] width : largeur de la fenetre
   * @param[in] height : hauteur de la fenetre
 **/
-void placerBoutons(MinGL & window, vector<boutons> & b,const unsigned & width, const unsigned & height)
-{
-    for(size_t i = 0; i < b.size(); ++i)
-    {
+void placeBtns(const MinGL &window, vector<button> &btns) {
 
+    nsGraphics::Vec2D winSize = window.getWindowSize();
+    size_t nb_btns = btns.size();
 
+    unsigned text_max_size = 0;
+    for (const button &btn : btns)
+        if (btn.content.size() > text_max_size)
+            text_max_size = btn.content.size();
+    nsGraphics::Vec2D btnSize{32*text_max_size, 64};
 
-        const unsigned x_texte=(width/2)-((unsigned((b[i].texte).size()))*4.5);
-        const unsigned y_texte=(height/(unsigned (b.size())+1))*unsigned(i+1);
+    for(size_t i=0; i<nb_btns; ++i) {
 
-        const unsigned marge_x = 100;//constantes
-        const unsigned marge_y = 30;
+        nsGraphics::Vec2D pos1 = {winSize.getX()/2 - btnSize.getX()/2, i * winSize.getY()/nb_btns + winSize.getY()/(2*nb_btns) - btnSize.getY()/2};
+        nsGraphics::Vec2D pos2 = pos1 + btnSize;
+        nsGraphics::Vec2D textPos = pos1 + btnSize/2;
 
-        b[i].x_sup = x_texte-marge_x;
-        b[i].y_sup = y_texte-marge_y;
-        b[i].x_inf = x_texte+(unsigned((b[i].texte).size()))*9+marge_x;
-        b[i].y_inf = y_texte+(unsigned((b[i].texte).size()))+marge_y;
+        btns[i].rect.setFirstPosition(pos1);
+        btns[i].rect.setSecondPosition(pos2);
+        btns[i].text.setPosition(textPos);
 
-        window << nsShape::Rectangle(nsGraphics::Vec2D(b[i].x_sup,b[i].y_sup),
-                                     nsGraphics::Vec2D(b[i].x_inf,b[i].y_inf),
-                                     nsGraphics::KTransparent,b[i].couleur);
-
-        window << nsGui::Text(nsGraphics::Vec2D(x_texte,y_texte),b[i].texte,b[i].couleur, nsGui::GlutFont::BITMAP_HELVETICA_18);
     }
+
 }//placerBoutons
 
+void drawBtns(MinGL &window, const vector<button> &btns) {
+    for (const button &btn : btns)
+        window << btn.rect << btn.text;
+}
 
 void menu()
 {
@@ -106,6 +96,13 @@ void menu()
 
     window.getEventManager().clearEvents();
 
+    // Création des boutons
+    vector<button> btns(3);
+    btns[0] = button {"Start", nsGraphics::KBlue, nsGraphics::KRed, nsGraphics::KLime};
+    btns[1] = button {"Scores", nsGraphics::KCyan, nsGraphics::KYellow, nsGraphics::KGreen};
+    btns[2] = button {"Quit", nsGraphics::KTeal, nsGraphics::KMaroon, nsGraphics::KOlive};
+    placeBtns(window, btns);
+
     // On fait tourner la boucle tant que la fenêtre est ouverte
     while (window.isOpen())
     {
@@ -115,24 +112,11 @@ void menu()
         // On efface la fenêtre
         window.clearScreen();
 
-        // On dessine le texte
-        //constante qui stocke la taille de la police
+        // On dessine les boutons
+        drawBtns(window, btns);
 
-
-
-        boutons b {"Start", nsGraphics::KRed};
-        boutons b2 {"Scores", nsGraphics::KWhite};
-        boutons b3 {"Quit", nsGraphics::KCyan};
-        vector <boutons> v;
-        v.push_back(b);
-        v.push_back(b2);
-        v.push_back(b3);
-
-        placerBoutons(window,v,width,heigth);
-
-        events(window,v);
-
-
+        // On check si un bouton est cliqué
+        events(window.getEventManager(), btns);
 
         // On finit la frame en cours
         window.finishFrame();

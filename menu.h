@@ -1,7 +1,6 @@
 #ifndef MENU_H
 #define MENU_H
 
-
 /*!
   * @author Ceccarelli Luca - Clement Romain - Saadi Nils - Valls Marion
   * @date 13 dec 2021
@@ -15,6 +14,7 @@
 
 #include "mingl/shape/rectangle.h"
 #include "mingl/mingl.h"
+#include "mingl/gui/glut_font.h"
 #include "mingl/gui/text.h"
 #include "mingl/shape/line.h"
 #include "mingl/event/event.hpp"
@@ -25,20 +25,29 @@ using namespace std;
 //nsGraphics::Vec2D rectPos;
 //nsGraphics::RGBAcolor rectColor = nsGraphics::KCyan;
 
-struct boutons{
+struct button{
     //texte a afficher et couleur dans laquelle l'afficher
-    string texte;
-    const::nsGraphics::RGBAcolor couleur;
-    int x_sup=0;
-    int y_sup=0;
-    int x_inf=0;
-    int y_inf=0;
+
+    string content;
+    nsGraphics::RGBAcolor bgColor;
+    nsGraphics::RGBAcolor borderColor;
+    nsGraphics::RGBAcolor textColor;
+
+    nsGui::Text text{nsGraphics::Vec2D{0,0},
+                     content,
+                     textColor,
+                     nsGui::GlutFont::GlutFonts::BITMAP_9_BY_15,
+                     nsGui::Text::ALIGNH_CENTER,
+                     nsGui::Text::ALIGNV_CENTER};
+    nsShape::Rectangle rect{nsGraphics::Vec2D{0,0},
+                            nsGraphics::Vec2D{0,0},
+                            bgColor,
+                            borderColor};
 };
 
+void events(MinGL &window,vector<button> &b);
 
-void events(MinGL &window,vector<boutons> &b);
-
-void placerBoutons(MinGL & window, vector<boutons> & b,const unsigned & width, const unsigned & height);
+void placerBoutons(MinGL & window, vector<button> & b);
 
 void menu();
 
