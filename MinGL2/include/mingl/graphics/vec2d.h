@@ -215,6 +215,13 @@ public:
     bool isColliding(Vec2D firstCorner, Vec2D secondCorner) const;
 
     /**
+     * @brief Renvoie le vecteur de même direction avec une norme de size
+     * @param[in] size : Taille du nouveau vecteur
+     * @fn Vec2D toSize(const int &size) const;
+     */
+    Vec2D toSize(const int &size) const;
+
+    /**
      * @brief Calcule la magnitude de ce vecteur
      * @return Magnitude du vecteur
      * @fn double computeMagnitude() const;
