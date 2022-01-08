@@ -7,6 +7,8 @@
 #define FPS_LIMIT 60
 
 #include <iostream>
+#include <cmath>        // sqrt, round
+#include <algorithm>    // clamp
 #include <thread>
 
 #include "mingl/mingl.h"
@@ -18,93 +20,151 @@
 using namespace std;
 
 namespace constantes {
-    const int WinwodX= 1500;
-    const int WinwodY= 800;
-    const string playerBulletSprite = "res/windowsBullet.si2";
-    const string playerSprite = "res/windows.si2";
+    const int WinwodX= 800;
+    const int WinwodY= 600;
+    const string playerBulletSprite = "res/laser-windo.si2";
+    const string playerSprite = "res/Windo.si2";
 
-    const string enemyBulletSprite = "res/windowsBullet.si2";
+    const string enemyBulletSprite = "res/ls-aux.si2";
     const string invaderSprite = "res/linux.si2";
     const unsigned nbOfInvaders = 5;
 
-    const int playerBulletDirection = -10;
-    const int enemyBulletDirection = 10;
-    const int speed = 10;
+    const unsigned reloadTime = 500;   // milliseconds
 }
 
-struct entityInfos{
-    nsGui::Sprite entity; // nsGui::Sprite("",nsGraphics::Vec2D(0, 0));
-    unsigned lifePoints;
-    nsGui::Sprite entityBullet;// nsGui::Sprite("",nsGraphics::Vec2D(0, 0));
-    vector<nsGui::Sprite> bullets;
+enum EntityTypes {
+    SHIP,
+    SHIP_BULLET,
+    INVADER,
+    INVADER_BULLET
 };
 
-void showEntity(MinGL &window, entityInfos Entity)
-{
-    window << Entity.entity;
+struct Entity{
+    EntityTypes type;
+    nsGui::Sprite sprite; // nsGui::Sprite("",nsGraphics::Vec2D(0, 0));
+    unsigned lifePoints;
+    nsGraphics::Vec2D firstBound;
+    nsGraphics::Vec2D secondBound;
+    int speed = 10;
+    nsGraphics::Vec2D velocity {0,0};
+    bool canGoOutOfBounds = false;
+};
+
+bool isOutOfBounds(const Entity &entity) {
+    nsGraphics::Vec2D spriteSize = entity.sprite.computeSize();
+    vector<int> spriteXs {entity.sprite.getPosition().getX(),
+                          entity.sprite.getPosition().getX() + spriteSize.getX()};
+    vector<int> spriteYs {entity.sprite.getPosition().getY(),
+                          entity.sprite.getPosition().getY() + spriteSize.getY()};
+
+    // For each corner of sprite
+    for (const int &xCorner : spriteXs) for (const int &yCorner : spriteYs)
+        // If the corner is inside of bounds
+        if (nsGraphics::Vec2D{xCorner,yCorner}.isColliding(entity.firstBound, entity.secondBound))
+            // We consider the entity isn't out of binds
+            return false;
+
+    // If we are here, each corner is out of bounds
+    // So entity is out of bounds
+    return true;
 }
 
-void showBullet(MinGL &window, entityInfos &Entity, int direction){
-    for(unsigned i = 0; i<Entity.bullets.size(); ++i){
-        window<<Entity.bullets[i];
-        Entity.bullets[i].setPosition(nsGraphics::Vec2D(Entity.bullets[i].getPosition().getX(),Entity.bullets[i].getPosition().getY()+direction));
+void initInvadersList (const MinGL &window, vector<Entity> &invaders) {
+    nsGui::Sprite invaderSprite {constantes::invaderSprite, {0,0}};
+    nsGraphics::Vec2D spriteSize = invaderSprite.computeSize();
+    for (unsigned i=0; i<constantes::nbOfInvaders; ++i) {
+        invaders.push_back(Entity {INVADER,
+                                   invaderSprite,
+                                   3,
+                                   nsGraphics::Vec2D {0,0},
+                                   window.getWindowSize()-spriteSize,
+                                   10*(int(i)+1)});
     }
 }
 
-void getShot(MinGL &window, entityInfos &Entity, bool &canShoot, bool &startTimer){
-    if(window.isPressed({' ',false}) && canShoot){
-        canShoot = false;
-        startTimer = true;
-        nsGui::Sprite bulletToAdd =Entity.entityBullet;
-        bulletToAdd.setPosition(nsGraphics::Vec2D(Entity.entity.getPosition().getX()+Entity.entity.computeSize().getX()/2-Entity.entityBullet.computeSize().getX()/2, Entity.entity.getPosition().getY()));
-        Entity.bullets.push_back(bulletToAdd);
+void moveEntities(Entity &entity) {
+    nsGraphics::Vec2D entityPos = entity.sprite.getPosition();
+
+    if (!entity.canGoOutOfBounds) {
+        nsGraphics::Vec2D deltaFirstBound  = entity.firstBound  - entityPos;
+        nsGraphics::Vec2D deltaSecondBound = entity.secondBound - entityPos;
+        entity.velocity.setX(clamp(entity.velocity.getX(),
+                                   deltaFirstBound.getX(),
+                                   deltaSecondBound.getX()));
+        entity.velocity.setY(clamp(entity.velocity.getY(),
+                                   deltaFirstBound.getY(),
+                                   deltaSecondBound.getY()));
     }
+
+    entity.sprite.setPosition(entity.sprite.getPosition() + entity.velocity);
+
 }
 
-void hasBeenShot(entityInfos &EntityShooting,entityInfos &Target){
-        nsShape::Rectangle entityShotHitBox(Target.entity.getPosition(),Target.entity.computeSize(), nsGraphics::KBlue);//color inutile
-        for(auto iter = EntityShooting.bullets.begin(); iter !=EntityShooting.bullets.end(); ){
-            nsGraphics::Vec2D bullet((*iter).getPosition().getX(),(*iter).getPosition().getY());
-            if(bullet.isColliding(entityShotHitBox.getFirstPosition(),entityShotHitBox.getSecondPosition())){
-                EntityShooting.bullets.erase(iter);
-                cout<<"la balle a touche"<<endl;
-                Target.lifePoints-=1; //faire fonct hasBeenKilled
-            }
-            else{
-                ++iter;
-            }
+void moveEntities(vector<Entity> &entityVec) {
+    for (Entity &entity : entityVec)
+        moveEntities(entity);
+}
+
+void playerMove(MinGL &window, Entity &entity) {
+
+    // Get user inputs
+    nsGraphics::Vec2D inputDirection {
+        window.isPressed({'d', false}) - window.isPressed({'q', false}),
+        window.isPressed({'s', false}) - window.isPressed({'z', false})
+    };
+    double inputMagn = inputDirection.computeMagnitude();
+
+    // If size is 0, entity must not move
+    if (inputMagn == 0) {
+        entity.velocity = {0,0};
+        return;
+    }
+
+    // Normalize, speed up and round the inputDirection vector
+    entity.velocity = {
+        round(inputDirection.getX() / inputMagn * entity.speed),
+        round(inputDirection.getY() / inputMagn * entity.speed)
+    };
+
+    // Now we can move entity :)
+    moveEntities(entity);
+}
+
+void playerShoot(MinGL &window, Entity &entity, vector<Entity> &bullets, bool &canShoot, chrono::steady_clock::time_point &lastShot) {
+
+    if(canShoot) {
+        if (window.isPressed({' ',false})) {
+            canShoot = false;
+            lastShot = chrono::steady_clock::now();
+            bullets.push_back(Entity {
+                                  SHIP_BULLET,
+                                  nsGui::Sprite (constantes::playerBulletSprite, entity.sprite.getPosition()),
+                                  1,
+                                  nsGraphics::Vec2D (0,0),
+                                  window.getWindowSize(),
+                                  15,
+                                  nsGraphics::Vec2D (0,-10),
+                                  true
+                              });
         }
-}
-
-void getPlayerMoves(MinGL &window,entityInfos &Entity)
-{
-
-    // On vérifie si ZQSD est pressé, et met a jour la position
-        if (window.isPressed({'z', false}))
-            if(Entity.entity.getPosition().getY()>0 && Entity.entity.getPosition().getY()-constantes::speed<constantes::WinwodY)
-                 Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX(),Entity.entity.getPosition().getY() - constantes::speed));
-        if (window.isPressed({'s', false}))
-            if(Entity.entity.getPosition().getY()>=0 && (Entity.entity.getPosition().getY()+constantes::speed+Entity.entity.computeSize().getY())<=constantes::WinwodY)
-                Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX(),Entity.entity.getPosition().getY() + constantes::speed));
-        if (window.isPressed({'q', false}))
-            if(Entity.entity.getPosition().getX()>0 && Entity.entity.getPosition().getX()-constantes::speed<constantes::WinwodX)
-                Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX()-constantes::speed,Entity.entity.getPosition().getY()));
-        if (window.isPressed({'d', false}))
-            if(Entity.entity.getPosition().getX()>=0 && (Entity.entity.getPosition().getX()+constantes::speed+Entity.entity.computeSize().getX())<constantes::WinwodX)
-                Entity.entity.setPosition(nsGraphics::Vec2D( Entity.entity.getPosition().getX()+constantes::speed,Entity.entity.getPosition().getY()));
-}
-
-void initInvadersList (vector<entityInfos> &invaders){
-    for(unsigned i =0; i<constantes::nbOfInvaders ; ++i){
-        invaders.push_back({nsGui::Sprite(constantes::invaderSprite,nsGraphics::Vec2D(0, 0)),
-                3,
-                nsGui::Sprite(constantes::enemyBulletSprite,nsGraphics::Vec2D(0, 0)),
-                vector<nsGui::Sprite>{}});
     }
+
+    else if (chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - lastShot).count() >= constantes::reloadTime)
+        canShoot = true;
 }
 
-int main()
-{
+
+
+void dispEntities(MinGL &window, const Entity &entity) {
+    window << entity.sprite;
+}
+
+void dispEntities(MinGL &window, const vector<Entity> &entityVec) {
+    for (const Entity &entity : entityVec)
+        dispEntities(window, entity);
+}
+
+int main() {
     // Initialise le système
     MinGL window("Jeu", nsGraphics::Vec2D(constantes::WinwodX, constantes::WinwodY), nsGraphics::Vec2D(50, 50), nsGraphics::KGray);
     window.initGlut();
@@ -113,44 +173,60 @@ int main()
     // Variable qui tient le temps de frame
     chrono::microseconds frameTime = chrono::microseconds::zero();
 
-    // Init Player
-    entityInfos player{nsGui::Sprite(constantes::playerSprite,nsGraphics::Vec2D(500, 500)),
-                      3,
-                      nsGui::Sprite(constantes::playerBulletSprite,nsGraphics::Vec2D(0, 0)),
-                vector<nsGui::Sprite>{}};
-    //Init Invader list
-    vector<entityInfos> invaders;
-    initInvadersList(invaders);
+    // Player initialization
+    nsGui::Sprite pSprite {constantes::playerSprite, nsGraphics::Vec2D{0,0}};
+    nsGraphics::Vec2D spriteSize = pSprite.computeSize();
+    Entity player {SHIP,
+                   pSprite,
+                   3,
+                   nsGraphics::Vec2D {10, window.getWindowSize().getY()-spriteSize.getY()-10},
+                   window.getWindowSize() - spriteSize - nsGraphics::Vec2D {10,10}};
+    vector<Entity> playerBullets;
+
+    // Invaders initialization
+    vector<Entity> invaders;
+    initInvadersList(window, invaders);
+    vector<Entity> invadersBullets;
 
     //Init shooting variables for delay
     bool canShoot = true;
-    chrono::steady_clock::time_point startShoot = chrono::steady_clock::now();
     chrono::steady_clock::time_point lastShot;
-    bool startTimer = false;
 
     // On fait tourner la boucle tant que la fenêtre est ouverte
-    while (window.isOpen())
-    {
+    while (window.isOpen()) {
+
         // Récupère l'heure actuelle
         chrono::time_point<chrono::steady_clock> start = chrono::steady_clock::now();
 
         // On efface la fenêtre
         window.clearScreen();
-        // On fait tourner les procédures
-        if(startTimer){
-            lastShot = chrono::steady_clock::now();
-            if(chrono::duration_cast<chrono::milliseconds> (lastShot - startShoot).count() > 500){
-                startShoot = chrono::steady_clock::now();
-                canShoot=true;
-            }
-        }
-        getShot(window,player, canShoot,startTimer);
-        getPlayerMoves(window,player);
 
-        showEntity(window,player);
-        showBullet(window,player,constantes::playerBulletDirection);
-        //hasBeenShot(player,enemy); if player shoots and target = enemy -> loop to check every enemy element in the struct
+        // Move entities
+        playerMove(window, player);
+        //moveInvaders(invaders);
+        moveEntities(playerBullets);
+        moveEntities(invadersBullets);
 
+        // Shoots
+        playerShoot(window, player, playerBullets, canShoot, lastShot);
+        //invadersShoots
+
+        // Check collisions
+        //entitiesCollisions(player, invadersBullets);
+        //entitiesCollisions(invaders, playerBullets);
+        //entitiesCollisions(playerBullets, invadersBullets);
+
+        // Delete all entities where lives=0
+        // deleteEntitiesIfDies(player);
+        // deleteEntitiesIfDies(invaders);
+        // deleteEntitiesIfDies(playersBullets);
+        // deleteEntitiesIfDies(invadersBullets);
+
+        // Display all entities
+        dispEntities(window, playerBullets);
+        dispEntities(window, invadersBullets);
+        dispEntities(window, player);
+        dispEntities(window, invaders);
 
         // On finit la frame en cours
         window.finishFrame();
@@ -158,12 +234,12 @@ int main()
         // On vide la queue d'évènements
         window.getEventManager().clearEvents();
 
-        // On attend un peu pour limiter le framerate et soulager le CPU
-        this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
-
         // On récupère le temps de frame
         frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
+
+        // On attend un peu pour limiter le framerate et soulager le CPU
+        this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - frameTime);
+
     }
     return 0;
 }
-
