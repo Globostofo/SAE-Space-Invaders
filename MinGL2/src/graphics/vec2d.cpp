@@ -171,6 +171,14 @@ bool nsGraphics::Vec2D::isColliding(Vec2D firstCorner, Vec2D secondCorner) const
          && firstCorner.getY() <= m_y && m_y <= secondCorner.getY());
 } // isColliding()
 
+nsGraphics::Vec2D nsGraphics::Vec2D::toSize(const int &size) const {
+    double magnitude = computeMagnitude();
+    if (magnitude)
+        return Vec2D(round(m_x / magnitude * size),
+                     round(m_y / magnitude * size));
+    return Vec2D();
+}
+
 double nsGraphics::Vec2D::computeMagnitude() const
 {
     return sqrt(m_x * m_x + m_y * m_y);
