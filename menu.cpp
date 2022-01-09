@@ -99,15 +99,35 @@ void drawBtns(MinGL &window, const vector<button> &btns) {
 }//DrawBtns
 
 /*!
+  * @brief fonction utilisé pour lire le fichier leaderBoard
+  * @param[in/out] leaderBoard : liste avec les noms des players et leur score, avec indice 0 pour le meilleur et 9 pour le pire
+  * @fn void getLeaderBoard(vector<string> &leaderBoard)
+**/
+void getLeaderBoard(vector<string> &leaderBoard){
+    //leaderBoard init to 10
+    string score;
+    ifstream scoreFile ("leaderBoard.txt");
+    for(vector<string>::iterator iter = leaderBoard.begin(); iter !=leaderBoard.end(); ++iter){
+        getline(scoreFile,score);
+        (*iter)=score;
+    }
+}//getLeaderBoard
+
+/*!
   * @brief fonction utilisé pour commencer le jeu
   * @param[in/out] window
   * @fn void startButton(MinGL &window
 **/
 void startButton(MinGL &window){
-    vector<button> btns(1);
-    btns[0] = button {"Back",1, nsGraphics::KBlue, nsGraphics::KRed, nsGraphics::KLime};
+    vector<button> btns(4);
+    btns[0] = button {"Enter your Name :",0, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
+    btns[1] = button {" ",1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
+    btns[2] = button {"Play",-1, nsGraphics::KRed, nsGraphics::KWhite, nsGraphics::KBlack};
+    btns[3] = button {"Back",3, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
     placeBtns(window, btns);
+
     bool flag=true;
+    char lastPressedKey = ' ';
 
     window.getEventManager().clearEvents();
     chrono::microseconds frameTime = chrono::microseconds::zero();
@@ -119,11 +139,26 @@ void startButton(MinGL &window){
         window.clearScreen();
 
         drawBtns(window, btns);
+        if(lastPressedKey==' ')
+            lastPressedKey= getLastPressedChar(window);
+        else{
+            btns[1].text.setContent(btns[1].text.getContent()+string(1,lastPressedKey));
+            lastPressedKey = ' ';
+            this_thread::sleep_for(chrono::milliseconds(160));
+        }
 
+        if(btns[1].text.getContent().size()>5){
+            btns[2].rect.setFillColor(nsGraphics::KGreen);
+            btns[2].buttonId = 2;
+        }
         // On check si un bouton est cliqué
         int content = events(window.getEventManager(), btns);
-        if(content==1)
-            flag=false;
+        if(content==3){
+            flag = false;
+        }
+        else if(content == 2){
+            cout<<"Function to start the game"<<endl;
+        }
         // On finit la frame en cours
         window.finishFrame();
 
@@ -142,12 +177,21 @@ void startButton(MinGL &window){
   * @fn void scoreButton(MinGL &window)
 **/
 void scoreButton(MinGL &window){
-    vector<button> btns(1);
-    btns[0] = button {"Back",1, nsGraphics::KRed, nsGraphics::KRed, nsGraphics::KLime};
+    vector<string> leaderBoard(10);
+    getLeaderBoard(leaderBoard);
+
+    vector<button> btns(12);
+    btns[0] = button {"Leaderboard :",0, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
+    for(unsigned i = 0 ; i<leaderBoard.size() ; ++i){
+        btns[i+1] = button {leaderBoard[i],(int)i+1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
+    }
+    btns[11] = button {"Back",11, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
     placeBtns(window, btns);
+
     bool flag=true;
     window.getEventManager().clearEvents();
     chrono::microseconds frameTime = chrono::microseconds::zero();
+
     while(flag){
         // Récupère l'heure actuelle
         chrono::time_point<chrono::steady_clock> start = chrono::steady_clock::now();
@@ -159,7 +203,7 @@ void scoreButton(MinGL &window){
 
         // On check si un bouton est cliqué
         int content = events(window.getEventManager(), btns);
-        if(content==1)
+        if(content==11)
             flag=false;
         // On finit la frame en cours
         window.finishFrame();
@@ -212,13 +256,12 @@ void settingsButton(MinGL &window){
         window.clearScreen();
         if(lastPressedKey==' ')
             lastPressedKey= getLastPressedChar(window);
-        cout<<lastPressedKey<<endl;
 
         drawBtns(window, btns);
 
         // On check si un bouton est cliqué
         int content = events(window.getEventManager(), btns);
-        cout<<content<<endl;
+
         if((content != 10 )&& (content != -1) && (content != 9 )){
             btns[content].text.setContent(string(1,lastPressedKey));
             lastPressedKey = ' ';
