@@ -13,6 +13,7 @@
 #include <thread>   //gerer les frames et le temps
 #include <string>   //convert char type to string
 #include <map>      //store game themes
+#include <fstream>  //read leaderBoard File
 
 #include "mingl/shape/rectangle.h"
 #include "mingl/mingl.h"
@@ -81,6 +82,13 @@ void placeBtns(const MinGL &window, vector<button> &btns);
 void drawBtns(MinGL &window, const vector<button> &btns);
 
 /*!
+  * @brief fonction utilisé pour lire le fichier leaderBoard
+  * @param[in/out] leaderBoard : liste avec les noms des players et leur score, avec indice 0 pour le meilleur et 9 pour le pire
+  * @fn void getLeaderBoard(vector<string> &leaderBoard)
+**/
+void getLeaderBoard(vector<string> &leaderBoard);
+
+/*!
   * @brief fonction utilisé pour commencer le jeu
   * @param[in/out] window
   * @fn void startButton(MinGL &window
@@ -114,5 +122,6 @@ void checkContent(MinGL &window, int &content);
   * @fn void menu()
 **/
 void menu();
+
 
 #endif // MENU_H
