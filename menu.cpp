@@ -139,7 +139,7 @@ void startButton(MinGL &window){
         drawBtns(window, btns);
         if(lastPressedKey==' ')
             lastPressedKey= getLastPressedChar(window);
-        else{
+        else if(btns[1].text.getContent().size()<15){
             btns[1].text.setContent(btns[1].text.getContent()+string(1,lastPressedKey));
             lastPressedKey = ' ';
             this_thread::sleep_for(chrono::milliseconds(160));
