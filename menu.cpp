@@ -44,11 +44,9 @@ int events(nsEvent::EventManager &eventM, const vector<button> &btns)
   * @fn char getLastPressedChar(MinGL &window)
 **/
 char getLastPressedChar(MinGL &window){
-    vector<char> alphabet {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
-    //string alpahbet = "abcdefghijklmnopqrstuvwxyz";
+    string alphabet = "abcdefghijklmnopqrstuvwxyz";
     for(auto letter : alphabet){
         if (window.isPressed({letter, false})){
-            //cout<<letter<<endl;
             return letter;
         }
     }
