@@ -47,6 +47,7 @@ char getLastPressedChar(MinGL &window){
     string alphabet = "abcdefghijklmnopqrstuvwxyz";
     for(auto letter : alphabet){
         if (window.isPressed({letter, false})){
+            //cout<<letter<<endl;
             return letter;
         }
     }
@@ -117,18 +118,23 @@ void getLeaderBoard(vector<string> &leaderBoard){
   * @fn void startButton(MinGL &window
 **/
 void startButton(MinGL &window){
-    vector<button> btns(4);
+    //initialisation des boutons du menu Start
+    vector<button> btns(5);
     btns[0] = button {"Enter your Name :",0, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
     btns[1] = button {" ",1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
-    btns[2] = button {"Play",-1, nsGraphics::KRed, nsGraphics::KWhite, nsGraphics::KBlack};
-    btns[3] = button {"Back",3, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
+    btns[2] = button {"Delete last character",2, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
+    btns[3] = button {"Play",-1, nsGraphics::KRed, nsGraphics::KWhite, nsGraphics::KBlack};
+    btns[4] = button {"Back",4, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
     placeBtns(window, btns);
 
+    //variables
     bool flag=true;
     char lastPressedKey = ' ';
 
+    //Re initialiser les valeurs de la fenetre necessaires
     window.getEventManager().clearEvents();
     chrono::microseconds frameTime = chrono::microseconds::zero();
+
     while(flag){
         // Récupère l'heure actuelle
         chrono::time_point<chrono::steady_clock> start = chrono::steady_clock::now();
@@ -136,27 +142,43 @@ void startButton(MinGL &window){
         // On efface la fenêtre
         window.clearScreen();
 
+        //dessiner boutons
         drawBtns(window, btns);
+
+        //recuperer la derniere valeur inseré au clavier par l'utilisateur
         if(lastPressedKey==' ')
             lastPressedKey= getLastPressedChar(window);
         else if(btns[1].text.getContent().size()<15){
             btns[1].text.setContent(btns[1].text.getContent()+string(1,lastPressedKey));
             lastPressedKey = ' ';
-            this_thread::sleep_for(chrono::milliseconds(160));
+            this_thread::sleep_for(chrono::milliseconds(140));
         }
 
+        //Verifier si l'utilisateur peut appuyer sur le bouton pour commencer, conditions : un username de 5 caracteres
         if(btns[1].text.getContent().size()>5){
-            btns[2].rect.setFillColor(nsGraphics::KGreen);
-            btns[2].buttonId = 2;
+            btns[3].rect.setFillColor(nsGraphics::KGreen);
+            btns[3].buttonId = 3;
         }
+        else{
+            btns[3].rect.setFillColor(nsGraphics::KRed);
+            btns[3].buttonId = -1;
+        }
+
         // On check si un bouton est cliqué
         int content = events(window.getEventManager(), btns);
-        if(content==3){
+
+        if(content==4){//revenir en arriere
             flag = false;
         }
-        else if(content == 2){
+        else if(content == 2 && btns[1].text.getContent().size()>0){//effacer la derniere lettre dans le bouton username
+            string username = btns[1].text.getContent();
+            username.erase(prev(username.end()));
+            btns[1].text.setContent(username);
+        }
+        else if(content == 3){//commencer la partie
             cout<<"Function to start the game"<<endl;
         }
+
         // On finit la frame en cours
         window.finishFrame();
 
@@ -308,7 +330,7 @@ void checkContent(MinGL &window, int &content){
     }
 }//checkContent
 
-void menu(){
+int main(){
     // Initialise le système
     const unsigned width = 1280;
     const unsigned heigth = 720;
@@ -356,4 +378,5 @@ void menu(){
         frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
     }
     window.getEventManager().clearEvents();
-}
+    return 1;
+}//menu
