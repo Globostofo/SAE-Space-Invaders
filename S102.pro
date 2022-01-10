@@ -5,15 +5,16 @@ CONFIG -= qt
 include(MinGL2/mingl.pri)
 
 SOURCES += \
-        enemy.cpp \
+        box.cpp \
         entity.cpp \
         main.cpp \
         menu.cpp \
-        player.cpp
+        spaceinvaders.cpp
 
 HEADERS += \
-    enemy.h \
+    box.h \
+    consts.h \
     entity.h \
-    main.h \
+    entity.h \
     menu.h \
-    player.h
+    spaceinvaders.h
