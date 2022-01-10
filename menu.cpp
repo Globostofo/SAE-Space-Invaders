@@ -113,6 +113,52 @@ void getLeaderBoard(vector<string> &leaderBoard){
 }//getLeaderBoard
 
 /*!
+  * @brief fonction utilisé pour acceder au valeurs dans le fichier de configuration.yaml
+  * @param[in/out] dictionnaire avec les parametres
+  * @fn void readConfFile(map<string,string> &settings
+**/
+void readConfFile(map<string,string> &settings){
+
+    ifstream configFile ("config.yaml");
+    string line;
+
+    while(getline(configFile,line)){
+
+        string value="";
+        string key="";
+        bool isSeparatorfound = false;
+
+        for(char letter : line){
+            if(letter == ':'){
+                isSeparatorfound = true;
+                continue;
+            }
+            if(isSeparatorfound){
+                value+=string(1,letter);
+            }
+            else{
+                key+=string(1,letter);
+            }
+        }
+        settings[key]=value;
+    }
+}// readConfFile
+
+/*!
+  * @brief fonction utilisé pour ecrire les valeurs dans le dictionnaire parametres, dans le fichier de configuration.yaml
+  * @param[in/out] dictionnaire avec les parametres
+  * @fn void writeConfigFile(map<string,string> &settings)
+**/
+void writeConfigFile(map<string,string> &settings){
+
+    ofstream ofs ("config.yaml");
+    for(map<string,string>::iterator iter = settings.begin(); iter!=settings.end(); ++iter){
+        ofs<<(*iter).first<<":"<<(*iter).second<<endl;
+    }
+    ofs.close();
+}//writeConfigFile
+
+/*!
   * @brief fonction utilisé pour commencer le jeu
   * @param[in/out] window
   * @fn void startButton(MinGL &window
@@ -244,24 +290,37 @@ void scoreButton(MinGL &window){
 **/
 void settingsButton(MinGL &window){
 
-    vector<button> btns(11);
-    btns[0] = button {"To change a key : press the wanted key on the keyboard,",-1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
-    btns[1] = button {"then select the concearning button containing the key",-1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
-    btns[2] = button {"Left Move :",-1, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
-    btns[3] = button {"q",3, nsGraphics::KWhite, nsGraphics::KGray, nsGraphics::KBlack};
-    btns[4] = button {"Right Move :",-1, nsGraphics::KGray, nsGraphics::KGray, nsGraphics::KBlack};
-    btns[5] = button {"d",5, nsGraphics::KWhite, nsGraphics::KGray, nsGraphics::KBlack};
-    btns[6] = button {"Shoot :",-1, nsGraphics::KGray, nsGraphics::KGray, nsGraphics::KBlack};
-    btns[7] = button {"z",7, nsGraphics::KWhite, nsGraphics::KGray, nsGraphics::KBlack};
-    btns[8] = button {"Theme :",-1, nsGraphics::KGray, nsGraphics::KGray, nsGraphics::KBlack};
-    btns[9] = button {"Windows vs Linux",9, nsGraphics::KWhite, nsGraphics::KGray, nsGraphics::KBlack};
-    btns[10] = button {"Back",10, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
-    placeBtns(window, btns);
+    //Dictionary containing the configs from the config file
+    map<string,string> settings;
+    readConfFile(settings);
 
+    //Dictionary containing the differents themes avaible
     map <int,string> themes;
     themes[0] = "Windows vs Linux";
     themes[1] = "Vanilla Space Invaders";
     int themeCounter = 0;
+
+    //Dictionary containing the keys of the config file on the second value, and on first value their buttonId
+    map<int,string> buttonContent;
+    buttonContent[3]="LeftKey";
+    buttonContent[5]="RightKey";
+    buttonContent[7]="ShootKey";
+    buttonContent[9]="Theme";
+
+    //Init the button list
+    vector<button> btns(11);
+    btns[0] = button {"To change a key : press the wanted key on the keyboard,",-1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
+    btns[1] = button {"then select the concearning button containing the key",-1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
+    btns[2] = button {"Left Key :",-1, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
+    btns[3] = button {settings["LeftKey"],3, nsGraphics::KWhite, nsGraphics::KGray, nsGraphics::KBlack};
+    btns[4] = button {"Right Key :",-1, nsGraphics::KGray, nsGraphics::KGray, nsGraphics::KBlack};
+    btns[5] = button {settings["RightKey"],5, nsGraphics::KWhite, nsGraphics::KGray, nsGraphics::KBlack};
+    btns[6] = button {"Shoot Key :",-1, nsGraphics::KGray, nsGraphics::KGray, nsGraphics::KBlack};
+    btns[7] = button {settings["ShootKey"],7, nsGraphics::KWhite, nsGraphics::KGray, nsGraphics::KBlack};
+    btns[8] = button {"Theme :",-1, nsGraphics::KGray, nsGraphics::KGray, nsGraphics::KBlack};
+    btns[9] = button {themes[stoi( settings["Theme"] )],9, nsGraphics::KWhite, nsGraphics::KGray, nsGraphics::KBlack};
+    btns[10] = button {"Back",10, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
+    placeBtns(window, btns);
 
     bool flag=true;
     char lastPressedKey = ' ';
@@ -274,23 +333,35 @@ void settingsButton(MinGL &window){
 
         // On efface la fenêtre
         window.clearScreen();
+
+        //On recupere la derniere lettre appuyé
         if(lastPressedKey==' ')
             lastPressedKey= getLastPressedChar(window);
 
+        //On dessine les buttons
         drawBtns(window, btns);
 
         // On check si un bouton est cliqué
         int content = events(window.getEventManager(), btns);
 
-        if((content != 10 )&& (content != -1) && (content != 9 )){
-            btns[content].text.setContent(string(1,lastPressedKey));
+        if((content != 10 )&& (content != -1) && (content != 9 )){  //Changer les touches
+            string lastPressedKeyString=string(1,lastPressedKey);   //impossible to affect the value to the map without passing through another variable
+
+            btns[content].text.setContent(lastPressedKeyString);
             lastPressedKey = ' ';
+
+            settings[buttonContent[content]]=lastPressedKeyString;
+
         }
-        else if(content == 9){
+        else if(content == 9){                                      //changer le theme
             ++themeCounter;
             btns[content].text.setContent(themes[themeCounter%2]);
+
+            int themeCounterAfterModule = themeCounter%2;           //impossible to affect the value to the map without passing through another variable
+            string theme = to_string(themeCounterAfterModule);      //impossible to affect the value to the map without passing through another variable
+            settings[buttonContent[content]]=theme;
         }
-        else if(content == 10){
+        else if(content == 10){                                     // revenir en arriere
             flag = false;
         }
         // On finit la frame en cours
@@ -301,8 +372,8 @@ void settingsButton(MinGL &window){
 
         // On récupère le temps de frame
         frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
-
     }
+    writeConfigFile(settings);
 }//settingsButton
 
 /*!
@@ -330,7 +401,7 @@ void checkContent(MinGL &window, int &content){
     }
 }//checkContent
 
-int main(){
+int menu(){
     // Initialise le système
     const unsigned width = 1280;
     const unsigned heigth = 720;
@@ -378,5 +449,4 @@ int main(){
         frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
     }
     window.getEventManager().clearEvents();
-    return 1;
 }//menu
