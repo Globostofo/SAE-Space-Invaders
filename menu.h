@@ -89,6 +89,20 @@ void drawBtns(MinGL &window, const vector<button> &btns);
 void getLeaderBoard(vector<string> &leaderBoard);
 
 /*!
+  * @brief fonction utilisé pour acceder au valeurs dans le fichier de configuration.yaml
+  * @param[in/out] dictionnaire avec les parametres
+  * @fn void readConfFile(map<string,string> &settings
+**/
+void readConfFile(map<string,string> &settings);
+
+/*!
+  * @brief fonction utilisé pour ecrire les valeurs dans le dictionnaire parametres, dans le fichier de configuration.yaml
+  * @param[in/out] dictionnaire avec les parametres
+  * @fn void writeConfigFile(map<string,string> &settings)
+**/
+void writeConfigFile(map<string,string> &settings);
+
+/*!
   * @brief fonction utilisé pour commencer le jeu
   * @param[in/out] window
   * @fn void startButton(MinGL &window
