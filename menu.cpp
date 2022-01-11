@@ -17,7 +17,8 @@ int nsMenu::events(nsEvent::EventManager &eventM, const vector<Button> &btns) {
                 //cout << btn.content << " at pos : " << btn.rect.getFirstPosition() << " | " << btn.rect.getSecondPosition() << endl;
                 if (eventPos.isColliding(btn.rect.getFirstPosition(), btn.rect.getSecondPosition())){
                     //cout << btn.content << endl;
-                    return btn.buttonId;
+                    btn.execute();
+//                    return btn.buttonId;
                 }
             }
         }
@@ -75,33 +76,6 @@ void nsMenu::getLeaderBoard(vector<string> &leaderBoard){
         (*iter)=score;
     }
 } // getLeaderBoard()
-
-void nsMenu::readFile(map<unsigned,string> &fileOutPut, string filename){
-
-    ifstream file (filename);
-    string line;
-
-    while(getline(file,line)){
-
-        string value="";
-        string key="";
-        bool isSeparatorfound = false;
-
-        for(char letter : line){
-            if(letter == ':'){
-                isSeparatorfound = true;
-                continue;
-            }
-            if(isSeparatorfound){
-                value+=string(1,letter);
-            }
-            else{
-                key+=string(1,letter);
-            }
-        }
-        fileOutPut[stoul(key)]=value;
-    }
-}// readFile
 
 void nsMenu::readConfFile(map<string,string> &settings) {
 
@@ -205,7 +179,7 @@ void nsMenu::startButton(MinGL &window) {
         window.finishFrame();
 
         // On attend un peu pour limiter le framerate et soulager le CPU
-        this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
+        this_thread::sleep_for(chrono::milliseconds(1000 / 60) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
 
         // On récupère le temps de frame
         frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
@@ -213,17 +187,14 @@ void nsMenu::startButton(MinGL &window) {
     }
 } // startButton()
 
-void nsMenu::scoreButton(MinGL &window){
-    
-    map<unsigned,string> leaderBoard;
-    readFile(leaderBoard,"leaderBoard.txt");
+void nsMenu::scoreButton(MinGL &window) {
+    vector<string> leaderBoard(10);
+    getLeaderBoard(leaderBoard);
 
     vector<Button> btns(12);
     btns[0] = Button {"Leaderboard :",0, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
-    unsigned i =0;
-    for(map<unsigned,string>::reverse_iterator iter = leaderBoard.rbegin(); iter!=leaderBoard.rend(); ++iter){
-        btns[i+1] = button {(*iter).second+":"+to_string((*iter).first),(int)i+1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
-        ++i;
+    for(unsigned i = 0 ; i<leaderBoard.size() ; ++i){
+        btns[i+1] = Button {leaderBoard[i],(int)i+1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
     }
     btns[11] = Button {"Back",11, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
     placeBtns(window, btns);
@@ -249,7 +220,7 @@ void nsMenu::scoreButton(MinGL &window){
         window.finishFrame();
 
         // On attend un peu pour limiter le framerate et soulager le CPU
-        this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
+        this_thread::sleep_for(chrono::milliseconds(1000 / 60) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
 
         // On récupère le temps de frame
         frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
@@ -257,7 +228,7 @@ void nsMenu::scoreButton(MinGL &window){
     }
 } // scoreButton()
 
-void nsMenu::settingsButton(MinGL &window){
+void nsMenu::settingsButton(MinGL &window) {
 
     //Dictionary containing the configs from the config file
     map<string,string> settings;
@@ -337,7 +308,7 @@ void nsMenu::settingsButton(MinGL &window){
         window.finishFrame();
 
         // On attend un peu pour limiter le framerate et soulager le CPU
-        this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
+        this_thread::sleep_for(chrono::milliseconds(1000 / 60) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
 
         // On récupère le temps de frame
         frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
@@ -345,7 +316,7 @@ void nsMenu::settingsButton(MinGL &window){
     writeConfigFile(settings);
 } // settingsButton()
 
-void nsMenu::checkContent(MinGL &window, int &content){
+void nsMenu::checkContent(MinGL &window, int &content) {
     switch(content) {
     case -1:
         break;
@@ -406,7 +377,7 @@ void nsMenu::menu() {
         window.finishFrame();
 
         // On attend un peu pour limiter le framerate et soulager le CPU
-        this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
+        this_thread::sleep_for(chrono::milliseconds(1000 / 60) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
 
         // On récupère le temps de frame
         frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
