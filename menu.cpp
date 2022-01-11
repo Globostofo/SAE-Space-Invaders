@@ -76,6 +76,33 @@ void nsMenu::getLeaderBoard(vector<string> &leaderBoard){
     }
 } // getLeaderBoard()
 
+void nsMenu::readFile(map<string,unsigned> &fileOutPut, string filename){
+
+    ifstream file (filename);
+    string line;
+
+    while(getline(file,line)){
+
+        string value="";
+        string key="";
+        bool isSeparatorfound = false;
+
+        for(char letter : line){
+            if(letter == ':'){
+                isSeparatorfound = true;
+                continue;
+            }
+            if(isSeparatorfound){
+                value+=string(1,letter);
+            }
+            else{
+                key+=string(1,letter);
+            }
+        }
+        fileOutPut[key]=stoul(value);
+    }
+}// readFile
+
 void nsMenu::readConfFile(map<string,string> &settings) {
 
     ifstream configFile ("config.yaml");
@@ -187,13 +214,16 @@ void nsMenu::startButton(MinGL &window) {
 } // startButton()
 
 void nsMenu::scoreButton(MinGL &window){
-    vector<string> leaderBoard(10);
-    getLeaderBoard(leaderBoard);
+    
+    map<string,unsigned> leaderBoard;
+    readFile(leaderBoard,"leaderBoard.txt");
 
     vector<Button> btns(12);
     btns[0] = Button {"Leaderboard :",0, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
-    for(unsigned i = 0 ; i<leaderBoard.size() ; ++i){
-        btns[i+1] = Button {leaderBoard[i],(int)i+1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
+    unsigned i =0;
+    for(map<string,unsigned>::iterator iter = leaderBoard.begin(); iter!=leaderBoard.end(); ++iter){
+        ++i;
+        btns[i+1] = button {(*iter).first+":"+to_string((*iter).second),(int)i+1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
     }
     btns[11] = Button {"Back",11, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
     placeBtns(window, btns);
