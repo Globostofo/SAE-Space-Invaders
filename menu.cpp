@@ -221,7 +221,7 @@ void nsMenu::scoreButton(MinGL &window){
     vector<Button> btns(12);
     btns[0] = Button {"Leaderboard :",0, nsGraphics::KGray, nsGraphics::KWhite, nsGraphics::KBlack};
     unsigned i =0;
-    for(map<unsigned,string>::iterator iter = leaderBoard.begin(); iter!=leaderBoard.end(); ++iter){
+    for(map<unsigned,string>::reverse_iterator iter = leaderBoard.rbegin(); iter!=leaderBoard.rend(); ++iter){
         btns[i+1] = button {(*iter).second+":"+to_string((*iter).first),(int)i+1, nsGraphics::KSilver, nsGraphics::KWhite, nsGraphics::KBlack};
         ++i;
     }
