@@ -42,7 +42,7 @@ int main() {
 
     // Constantes qui tient le thème
     nsScene::Theme theme;
-    switch ((int)(settings["Theme"])) {
+    switch (stoi(settings["Theme"])) {
         case 0 :{theme =BASE; break; }
         case 1 :{theme =SKY; break; }
         case 2 :{theme =SEA; break; }
@@ -62,7 +62,7 @@ int main() {
     nsSpaceInvaders::Data gameData;
     Scene sceneGameOver {bg};
     initGameOverScene(sceneGameOver);
-    map<string,string> leaderboard;
+    vector<string> leaderboard; // passer en parametre que à init scene settings
     Scene sceneSettings {bg};
     initSettingsScene(sceneSettings,settings);
 

@@ -45,7 +45,7 @@ std::string getShieldSpritePathByTheme(const Theme &theme);
 
 nsGraphics::RGBAcolor getTextColorByTheme(const Theme &theme);
 
-std::string getPressedChars(MinGL &window);
+std::string getPressedChars(MinGL &window,const bool isReset);
 
 void initMainMenu(Scene &scene);
 
@@ -59,7 +59,7 @@ void initGameOverScene(Scene &scene);
 
 void displayScene(MinGL &window, const Scene &scene);
 
-void computeScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, std::map<std::string,std::string> &leaderboard, Scene &gameScene, nsSpaceInvaders::Data &gameData,std::map<std::string,std::string> &settings);
+void computeScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, std::vector<std::string> &leaderboard, Scene &gameScene, nsSpaceInvaders::Data &gameData,std::map<std::string,std::string> &settings);
 
 }
 
