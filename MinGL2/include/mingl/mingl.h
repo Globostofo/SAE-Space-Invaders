@@ -23,7 +23,6 @@
 #include "graphics/rgbacolor.h"
 #include "graphics/vec2d.h"
 #include "shape/circle.h"
-#include "shape/dick.h"
 
 #include "event/event_manager.h"
 
