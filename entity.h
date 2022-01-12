@@ -58,7 +58,7 @@ nsBox::Box getEntityBox(const Entity &entity);
  * @param[in] direction : new direction
  * @fn void setEntitiesDirection(std::vector<Entity> &entities, const nsGraphics::Vec2D &direction);
  */
-void setEntitiesDirection(std::vector<Entity> &entities, const nsGraphics::Vec2D &direction);
+void setEntitiesDirection(std::vector<Entity> &entities, const nsGraphics::Vec2D &direction, const EntityType &type);
 
 /*!
  * @brief Procedure used to put an entity on window
@@ -95,7 +95,7 @@ void moveEntities(Entity &entity);
  * @param[in/out] entityVec : entities to move
  * @fn void moveEntities(std::vector<Entity> &entityVec);
  */
-void moveEntities(std::vector<Entity> &entityVec);
+void moveEntities(std::vector<Entity> &entityVec, const EntityType &type);
 
 /*!
  * @brief Procedure to check collisions between two entities according to their collisions mask (map entitiesCollider)
@@ -106,20 +106,12 @@ void moveEntities(std::vector<Entity> &entityVec);
 void entitiesCollisions(Entity &entity1, Entity &entity2);
 
 /*!
- * @brief Procedure with just a loop to making collides each entity from vector to entity
- * @param[in/out] entity1 : entity to check
- * @param[in/out] entityVec2 : entities to check
- * @fn void entitiesCollisions(Entity &entity1, std::vector<Entity> &entityVec2);
- */
-void entitiesCollisions(Entity &entity1, std::vector<Entity> &entityVec2);
-
-/*!
  * @brief Procedure with just two loops to making collides each entity from first vector to each entity from second vector
  * @param[in/out] entityVec1 : first vector to check
  * @param[in/out] entityVec2 : second vector to check
  * @fn void entitiesCollisions(std::vector<Entity> &entityVec1, std::vector<Entity> &entityVec2);
  */
-void entitiesCollisions(std::vector<Entity> &entityVec1, std::vector<Entity> &entityVec2);
+void entitiesCollisions(std::vector<Entity> &entityVec);
 
 /*!
  * @brief Procedure to remove entities from vector if its number of lifes is under 0 or if it's out of bounds
