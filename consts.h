@@ -16,6 +16,7 @@ const std::string config = "res/config.yaml";
 const std::string leaderboard = "res/leaderBoard.txt";
 
 // Backgrounds paths
+const std::string bgMenu = "res/menuBG.si2";
 const std::string bg1 = "res/fond.si2";
 const std::string bg2 = "res/fond-ciel.si2";
 const std::string bg3 = "res/fond-mer.si2";

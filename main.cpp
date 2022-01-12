@@ -53,12 +53,12 @@ int main() {
     SceneID currentScene = MAIN_MENU;
 
     // Instanciation et initialisations des scènes
-    Sprite bg(getBgPathByTheme(theme));
+    Sprite bg(nsConsts::bgMenu);
     Scene sceneMainMenu {bg};
     initMainMenu(sceneMainMenu);
     Scene sceneScoreMenu {bg};
     initScoreMenu(sceneScoreMenu);
-    Scene sceneGame {bg};
+    Scene sceneGame {Sprite(getBgPathByTheme(theme))};
     nsSpaceInvaders::Data gameData;
     Scene sceneGameOver {bg};
     initGameOverScene(sceneGameOver);
@@ -79,27 +79,23 @@ int main() {
         switch (currentScene) {
 
             case MAIN_MENU: {
-                computeScene(window, theme, sceneMainMenu, currentScene,leaderboard, sceneGame, gameData,settings);
+                computeMainMenu(window, theme, sceneMainMenu, currentScene, sceneGame, gameData);
                 break;
             }
-
             case SCORE_MENU: {
-                computeScene(window, theme, sceneScoreMenu, currentScene,leaderboard, sceneGame, gameData,settings);
+                computeScoreMenu(window, sceneScoreMenu, currentScene);
                 break;
             }
-
             case SETTINGS_MENU: {
-                computeScene(window, theme, sceneSettings, currentScene,leaderboard, sceneGame, gameData,settings);
+                computeSettingsMenu(window, sceneSettings, currentScene, settings);
                 break;
             }
-
             case GAME: {
-                computeScene(window, theme, sceneGame, currentScene,leaderboard, sceneGame, gameData,settings);
+                computeGameScene(window, theme, sceneGame, currentScene, gameData, settings);
                 break;
             }
-
             case GAME_OVER_MENU: {
-                computeScene(window, theme, sceneGameOver, currentScene,leaderboard, sceneGame, gameData,settings);
+                computeGameOverScene(window, theme, sceneGameOver, currentScene, gameData);
                 break;
             }
 
