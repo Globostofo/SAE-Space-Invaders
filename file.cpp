@@ -75,24 +75,8 @@ void nsFile::readConfFile(map<string,string> &settings) {
     string line;
 
     while(getline(configFile,line)){
-
-        string value="";
-        string key="";
-        bool isSeparatorfound = false;
-
-        for(char letter : line){
-            if(letter == ':'){
-                isSeparatorfound = true;
-                continue;
-            }
-            if(isSeparatorfound){
-                value+=string(1,letter);
-            }
-            else{
-                key+=string(1,letter);
-            }
-        }
-        settings[key]=value;
+        unsigned separator=str.find(":");
+        settings[line.substr(0,separator-1)]=line.substr(separator+1,line.size()-2);
     }
 } // readConfFile()
 
