@@ -59,7 +59,15 @@ void initGameOverScene(Scene &scene);
 
 void displayScene(MinGL &window, const Scene &scene);
 
-void computeScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, std::vector<std::string> &leaderboard, Scene &gameScene, nsSpaceInvaders::Data &gameData,std::map<std::string,std::string> &settings);
+void computeMainMenu(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, Scene &gameScene, nsSpaceInvaders::Data &gameData);
+
+void computeScoreMenu(MinGL &window, Scene &scene, SceneID &currentScene);
+
+void computeSettingsMenu(MinGL &window, Scene &scene, SceneID &currentScene, std::map<std::string,std::string> settings);
+
+void computeGameScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, nsSpaceInvaders::Data &gameData, std::map<std::string,std::string> settings);
+
+void computeGameOverScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, nsSpaceInvaders::Data &gameData);
 
 }
 

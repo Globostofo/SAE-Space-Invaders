@@ -170,174 +170,168 @@ void nsScene::displayScene(MinGL &window, const Scene &scene) {
         window << text;
 }
 
-void nsScene::computeScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, vector<string> &leaderboard, Scene &gameScene, nsSpaceInvaders::Data &gameData,map<string,string> &settings) {
-    switch (currentScene) {
+void nsScene::computeMainMenu(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, Scene &gameScene, nsSpaceInvaders::Data &gameData) {
+    if (nsButton::isPressed(window.getEventManager(), scene.buttons[0])) {
+        currentScene = GAME;
+        gameData.round = 0;
+        gameData.lifePointsRemaining = nsConsts::nbLifes;
+        gameData.score = 0;
+        initGameScene(gameScene, gameData, theme);
+    }
+    else if (nsButton::isPressed(window.getEventManager(), scene.buttons[1])) {
+        currentScene = SCORE_MENU;
+        std::vector<string> leaderboard;
+        nsFile::getLeaderBoard(leaderboard);
+    }
+    else if(nsButton::isPressed(window.getEventManager(), scene.buttons[2])){
+        currentScene = SETTINGS_MENU;
+    }
+    displayScene(window, scene);
+}
 
-        case MAIN_MENU: {
-            if (nsButton::isPressed(window.getEventManager(), scene.buttons[0])) {
-                currentScene = GAME;
-                gameData.round = 0;
-                gameData.lifePointsRemaining = nsConsts::nbLifes;
-                gameData.score = 0;
-                initGameScene(gameScene, gameData, theme);
+void nsScene::computeScoreMenu(MinGL &window, Scene &scene, SceneID &currentScene) {
+    if (nsButton::isPressed(window.getEventManager(), scene.buttons[10]))
+        currentScene = MAIN_MENU;
+    displayScene(window, scene);
+}
+
+void nsScene::computeSettingsMenu(MinGL &window, Scene &scene, SceneID &currentScene, map<string,string> settings) {
+    int themeCounter = stoi(settings["Theme"]);
+
+    string inputs = getPressedChars(window,false);
+    cout<<inputs<<endl;
+    if(inputs.size()>0){
+        for(unsigned i = 0 ; i<scene.buttons.size()-2; ++i){        // -2 bc last 2 not keys
+            if (nsButton::isPressed(window.getEventManager(), scene.buttons[i])){
+                string key =scene.buttons[i].text.getContent().substr(0,scene.buttons[i].text.getContent().size()-2);
+                settings[key]=inputs[0];
+                scene.buttons[i].text.setContent(key +":"+ settings[key]);
             }
-            else if (nsButton::isPressed(window.getEventManager(), scene.buttons[1])) {
-                currentScene = SCORE_MENU;
-                std::vector<string> leaderboard;
-                nsFile::getLeaderBoard(leaderboard);
-            }
-            else if(nsButton::isPressed(window.getEventManager(), scene.buttons[2])){
-                currentScene = SETTINGS_MENU;
-            }
-            break;
-        }
-
-        case SCORE_MENU: {
-            if (nsButton::isPressed(window.getEventManager(), scene.buttons[10])) {currentScene = MAIN_MENU;}
-                cout<<scene.buttons.size()<<endl;
-
-            break;
-        }
-
-        case SETTINGS_MENU: {
-            int themeCounter = stoi(settings["Theme"]);
-
-            string inputs = getPressedChars(window,false);
-            cout<<inputs<<endl;
-            if(inputs.size()>0){
-                for(unsigned i = 0 ; i<scene.buttons.size()-2; ++i){        // -2 bc last 2 not keys
-                    if (nsButton::isPressed(window.getEventManager(), scene.buttons[i])){
-                        string key =scene.buttons[i].text.getContent().substr(0,scene.buttons[i].text.getContent().size()-2);
-                        settings[key]=inputs[0];
-                        scene.buttons[i].text.setContent(key +":"+ settings[key]);
-                    }
-                }
-            }
-            if(nsButton::isPressed(window.getEventManager(), scene.buttons[5])){
-
-               ++themeCounter%=4;
-                unsigned separator=scene.buttons[5].text.getContent().find(":");
-                settings["Theme"]=to_string(themeCounter);
-
-                switch (themeCounter) {
-                    case 0:{
-                        scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator+1)+"Base");
-                        break;
-                    }
-                    case 1:{
-                        scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator+1)+"Sky");
-                        break;
-                    }
-                    case 2:{
-                        scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator+1)+"Sea");
-                        break;
-                    }
-                    case 3:{
-                        scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator+1)+"W vs L");
-                        break;
-                    }
-                }
-            }
-            if(nsButton::isPressed(window.getEventManager(), scene.buttons[6])){
-                nsFile::writeConfigFile(settings);
-                currentScene = MAIN_MENU;
-            }
-            break;
-        }
-
-        case GAME: {
-            if (nsButton::isPressed(window.getEventManager(), gameScene.buttons[0])) {currentScene = MAIN_MENU; return;}
-
-            // Move entities
-            nsSpaceInvaders::playerMove(window, scene.entities,settings); //passer en parametre settings pour touches
-            nsSpaceInvaders::invadersMove(scene.entities, gameData.invadersLine);
-            nsEntity::moveEntities(scene.entities, nsEntity::SHIP_BULLET);
-            nsEntity::moveEntities(scene.entities, nsEntity::INVADER_BULLET);
-
-            // Shoots
-            nsSpaceInvaders::playerShoot(window, scene.entities, gameData.round, gameData.canShoot, gameData.lastShot, getPlayerBulletSpritePathByTheme(theme));
-            nsSpaceInvaders::invadersShoot(window, scene.entities, gameData.invadersCanShoot, gameData.invadersLastShot, getInvaderBulletSpritePathByTheme(theme));
-
-            // Check collisions
-            nsEntity::entitiesCollisions(scene.entities, gameData.score);
-
-            // Delete all entities where lives=0
-            nsEntity::deleteDiedEntities(scene.entities, gameData.score);
-
-            // Layout update
-            scene.texts[0].setContent(to_string(gameData.score) + " pts");
-            for (const nsEntity::Entity &entity : scene.entities)
-                if (entity.type == nsEntity::SHIP) {
-                    scene.texts[1].setContent(to_string(entity.lifePoints) + " lives");
-                    break;
-                }
-
-            // End game
-            bool hasLose = true;
-            for (const nsEntity::Entity &entity : scene.entities)
-                if (entity.type == nsEntity::SHIP) {
-                    hasLose = false;
-                    break;
-                }
-            if (hasLose) {
-                cout << "YOU LOSE NOOB" << endl;
-                currentScene = GAME_OVER_MENU;
-            }
-
-            bool hasWon = true;
-            for (const nsEntity::Entity &entity : scene.entities)
-                if (entity.type == nsEntity::INVADER) {
-                    hasWon = false;
-                    break;
-                }
-            if (hasWon) {
-                gameData.score += nsConsts::levelClear * gameData.round;
-                for (const nsEntity::Entity &entity : scene.entities)
-                    if (entity.type == nsEntity::SHIP) {
-                        gameData.lifePointsRemaining = entity.lifePoints;
-                        break;
-                    }
-                initGameScene(scene, gameData, theme);
-                cout << "GG next level (" << gameData.round << ")" << endl;
-            }
-
-            break;
-        }
-
-        case GAME_OVER_MENU: {
-            if (nsButton::isPressed(window.getEventManager(), scene.buttons[0])) {
-                // update leaderBoard.txt
-                vector<string> leaderboard (10);
-                nsFile::getLeaderBoard(leaderboard);
-                nsFile::addScore(leaderboard,scene.texts[1].getContent(), gameData.score);
-                nsFile::writeLeaderBoard(leaderboard);
-
-                currentScene = GAME;
-                gameData.round = 0;
-                gameData.lifePointsRemaining = nsConsts::nbLifes;
-                gameData.score = 0;
-                initGameScene(gameScene, gameData, theme);
-            }
-            else if (nsButton::isPressed(window.getEventManager(), scene.buttons[1])) {
-                // update leaderBoard.txt
-                vector<string> leaderboard (10);
-                nsFile::getLeaderBoard(leaderboard);
-                nsFile::addScore(leaderboard,scene.texts[1].getContent(), gameData.score);
-                nsFile::writeLeaderBoard(leaderboard);
-                currentScene = MAIN_MENU;
-            }
-
-            string inputs = getPressedChars(window,true);
-            for (const char &pressed : inputs) {
-                string content = scene.texts[1].getContent();
-                if (pressed == '\b' && content.size())
-                    scene.texts[1].setContent(content.substr(0, content.size()-1));
-                else if (pressed != '\b' && content.size() < nsConsts::maxNameSize)
-                    scene.texts[1].setContent(content + pressed);
-            }
-
-            break;
         }
     }
+    if(nsButton::isPressed(window.getEventManager(), scene.buttons[5])){
+
+       ++themeCounter%=4;
+        unsigned separator=scene.buttons[5].text.getContent().find(":");
+        settings["Theme"]=to_string(themeCounter);
+
+        switch (themeCounter) {
+            case 0:{
+                scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator+1)+"Base");
+                break;
+            }
+            case 1:{
+                scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator+1)+"Sky");
+                break;
+            }
+            case 2:{
+                scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator+1)+"Sea");
+                break;
+            }
+            case 3:{
+                scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator+1)+"W vs L");
+                break;
+            }
+        }
+    }
+    if(nsButton::isPressed(window.getEventManager(), scene.buttons[6])){
+        nsFile::writeConfigFile(settings);
+        currentScene = MAIN_MENU;
+    }
+    displayScene(window, scene);
+}
+
+void nsScene::computeGameScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, nsSpaceInvaders::Data &gameData, map<string,string> settings) {
+    if (nsButton::isPressed(window.getEventManager(), scene.buttons[0])) {currentScene = MAIN_MENU; return;}
+
+    // Move entities
+    nsSpaceInvaders::playerMove(window, scene.entities,settings); //passer en parametre settings pour touches
+    nsSpaceInvaders::invadersMove(scene.entities, gameData.invadersLine);
+    nsEntity::moveEntities(scene.entities, nsEntity::SHIP_BULLET);
+    nsEntity::moveEntities(scene.entities, nsEntity::INVADER_BULLET);
+
+    // Shoots
+    nsSpaceInvaders::playerShoot(window, scene.entities, gameData.round, gameData.canShoot, gameData.lastShot, getPlayerBulletSpritePathByTheme(theme));
+    nsSpaceInvaders::invadersShoot(window, scene.entities, gameData.invadersCanShoot, gameData.invadersLastShot, getInvaderBulletSpritePathByTheme(theme));
+
+    // Check collisions
+    nsEntity::entitiesCollisions(scene.entities, gameData.score);
+
+    // Delete all entities where lives=0
+    nsEntity::deleteDiedEntities(scene.entities, gameData.score);
+
+    // Layout update
+    scene.texts[0].setContent(to_string(gameData.score) + " pts");
+    for (const nsEntity::Entity &entity : scene.entities)
+        if (entity.type == nsEntity::SHIP) {
+            scene.texts[1].setContent(to_string(entity.lifePoints) + " lives");
+            break;
+        }
+
+    // End game
+    bool hasLose = true;
+    for (const nsEntity::Entity &entity : scene.entities)
+        if (entity.type == nsEntity::SHIP) {
+            hasLose = false;
+            break;
+        }
+    if (hasLose) {
+        cout << "YOU LOSE NOOB" << endl;
+        currentScene = GAME_OVER_MENU;
+    }
+
+    bool hasWon = true;
+    for (const nsEntity::Entity &entity : scene.entities)
+        if (entity.type == nsEntity::INVADER) {
+            hasWon = false;
+            break;
+        }
+    if (hasWon) {
+        gameData.score += nsConsts::levelClear * gameData.round;
+        for (const nsEntity::Entity &entity : scene.entities)
+            if (entity.type == nsEntity::SHIP) {
+                gameData.lifePointsRemaining = entity.lifePoints;
+                break;
+            }
+        initGameScene(scene, gameData, theme);
+        cout << "GG next level (" << gameData.round << ")" << endl;
+    }
+
+    // Disaplay scene
+    displayScene(window, scene);
+}
+
+void nsScene::computeGameOverScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, nsSpaceInvaders::Data &gameData) {
+    if (nsButton::isPressed(window.getEventManager(), scene.buttons[0])) {
+        // update leaderBoard.txt
+        vector<string> leaderboard (10);
+        nsFile::getLeaderBoard(leaderboard);
+        nsFile::addScore(leaderboard,scene.texts[1].getContent(), gameData.score);
+        nsFile::writeLeaderBoard(leaderboard);
+
+        currentScene = GAME;
+        gameData.round = 0;
+        gameData.lifePointsRemaining = nsConsts::nbLifes;
+        gameData.score = 0;
+        initGameScene(scene, gameData, theme);
+    }
+    else if (nsButton::isPressed(window.getEventManager(), scene.buttons[1])) {
+        // update leaderBoard.txt
+        vector<string> leaderboard (10);
+        nsFile::getLeaderBoard(leaderboard);
+        nsFile::addScore(leaderboard,scene.texts[1].getContent(), gameData.score);
+        nsFile::writeLeaderBoard(leaderboard);
+        currentScene = MAIN_MENU;
+    }
+
+    string inputs = getPressedChars(window,true);
+    for (const char &pressed : inputs) {
+        string content = scene.texts[1].getContent();
+        if (pressed == '\b' && content.size())
+            scene.texts[1].setContent(content.substr(0, content.size()-1));
+        else if (pressed != '\b' && content.size() < nsConsts::maxNameSize)
+            scene.texts[1].setContent(content + pressed);
+    }
+
     displayScene(window, scene);
 }
