@@ -75,7 +75,7 @@ void nsFile::readConfFile(map<string,string> &settings) {
     string line;
 
     while(getline(configFile,line)){
-        unsigned separator=str.find(":");
+        unsigned separator=line.find(":");
         settings[line.substr(0,separator-1)]=line.substr(separator+1,line.size()-2);
     }
 } // readConfFile()
