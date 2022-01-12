@@ -36,8 +36,18 @@ int main() {
     // Variable qui tient le temps de frame
     chrono::microseconds frameTime = chrono::microseconds::zero();
 
+    // Settings provenant du yaml file
+    map<string,string> settings;
+    nsFile::readConfFile(settings);
+
     // Constantes qui tient le thème
-    const nsScene::Theme theme = nsScene::SEA;
+    nsScene::Theme theme;
+    switch ((int)(settings["Theme"])) {
+        case 0 :{theme =BASE; break; }
+        case 1 :{theme =SKY; break; }
+        case 2 :{theme =SEA; break; }
+        case 3 :{theme =WINDOWS; break; }
+    }
 
     // Variable qui tient la scène à afficher
     SceneID currentScene = MAIN_MENU;
@@ -53,6 +63,8 @@ int main() {
     Scene sceneGameOver {bg};
     initGameOverScene(sceneGameOver);
     map<string,string> leaderboard;
+    Scene sceneSettings {bg};
+    initSettingsScene(sceneSettings,settings);
 
     // On fait tourner la boucle tant que la fenêtre est ouverte
     while (window.isOpen()) {
@@ -67,22 +79,27 @@ int main() {
         switch (currentScene) {
 
             case MAIN_MENU: {
-                computeScene(window, theme, sceneMainMenu, currentScene, sceneGame, gameData);
+                computeScene(window, theme, sceneMainMenu, currentScene,leaderboard, sceneGame, gameData,settings);
                 break;
             }
 
             case SCORE_MENU: {
-                computeScene(window, theme, sceneScoreMenu, currentScene, sceneGame, gameData);
+                computeScene(window, theme, sceneScoreMenu, currentScene,leaderboard, sceneGame, gameData,settings);
+                break;
+            }
+
+            case SETTINGS_MENU: {
+                computeScene(window, theme, sceneSettings, currentScene,leaderboard, sceneGame, gameData,settings);
                 break;
             }
 
             case GAME: {
-                computeScene(window, theme, sceneGame, currentScene, sceneGame, gameData);
+                computeScene(window, theme, sceneGame, currentScene,leaderboard, sceneGame, gameData,settings);
                 break;
             }
 
             case GAME_OVER_MENU: {
-                computeScene(window, theme, sceneGameOver, currentScene, sceneGame, gameData);
+                computeScene(window, theme, sceneGameOver, currentScene,leaderboard, sceneGame, gameData,settings);
                 break;
             }
 

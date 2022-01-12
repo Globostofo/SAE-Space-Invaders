@@ -2,6 +2,7 @@
 #define SPACEINVADERS_H
 
 #include <thread>
+#include <map>
 
 #include "mingl/mingl.h"
 #include "mingl/gui/sprite.h"
@@ -47,7 +48,7 @@ void initInvadersList(std::vector<nsEntity::Entity> &invaders, const std::string
  * @param[in/out] player : entity to move
  * @fn void playerMove(MinGL &window, nsEntity::Entity &player);
  */
-void playerMove(MinGL &window, std::vector<nsEntity::Entity> &entities);
+void playerMove(MinGL &window, std::vector<nsEntity::Entity> &entities,std::map<std::string,std::string> &settings);
 
 /*!
  * @brief Procedure to move invaders

@@ -19,6 +19,7 @@ enum Theme {
 enum SceneID {
     MAIN_MENU,
     SCORE_MENU,
+    SETTINGS_MENU,
     GAME,
     GAME_OVER_MENU
 };
@@ -27,7 +28,6 @@ struct Scene {
     nsGui::Sprite background;
     std::vector<nsButton::Button> buttons;      // store all buttons for a scene
     std::vector<nsEntity::Entity> entities;     // store all entities (empty for a menu)
-    std::vector<nsGui::Sprite> sprites;         // store all sprites (usefull to display player heart)
     std::vector<nsGui::Text> texts;             // store all texts (usefull to settings and to display player lives remaining
 }; // struct Scene
 
@@ -51,13 +51,15 @@ void initMainMenu(Scene &scene);
 
 void initScoreMenu(Scene &scene);
 
+void initSettingsScene(Scene &scene,std::map<std::string,std::string> &settings);
+
 void initGameScene(Scene &scene, nsSpaceInvaders::Data &gameData, const Theme &theme);
 
 void initGameOverScene(Scene &scene);
 
 void displayScene(MinGL &window, const Scene &scene);
 
-void computeScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, Scene &gameScene, nsSpaceInvaders::Data &gameData);
+void computeScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, std::map<std::string,std::string> &leaderboard, Scene &gameScene, nsSpaceInvaders::Data &gameData,std::map<std::string,std::string> &settings);
 
 }
 

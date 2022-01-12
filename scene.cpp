@@ -87,7 +87,7 @@ string nsScene::getPressedChars(MinGL &window) {
 } // getLastPressedChar()
 
 void nsScene::initMainMenu(Scene &scene) {
-    vector<nsButton::Button> btns = {{"Play"}, {"LeaderBoard"}};
+    vector<nsButton::Button> btns = {{"Play"}, {"LeaderBoard"},{"Settings"}};
     nsButton::placeBtns(btns);
     scene.buttons = btns;
 }
@@ -96,6 +96,18 @@ void nsScene::initScoreMenu(Scene &scene) {
     nsButton::Button bt {"Back"};
     nsButton::setPosition(bt, nsGraphics::Vec2D(67,48));
     scene.buttons = {bt};
+}
+
+void nsScene::initSettingsScene(Scene &scene, map<string,string> &settings){
+    vector<nsButton::Button> btns = {{"LeftKey:"+settings.find("LeftKey")->second},
+                                     {"RightKey:"+settings.find("RightKey")->second},
+                                     {"DownKey:"+settings.find("DownKey")->second},
+                                     {"UpKey:"+settings.find("UpKey")->second},
+                                     {"ShootKey:"+settings.find("ShootKey")->second},
+                                     {"Theme:"+settings.find("Theme")->second},
+                                     {"Back"}};
+    nsButton::placeBtns(btns);
+    scene.buttons = btns;
 }
 
 void nsScene::initGameScene(Scene &scene, nsSpaceInvaders::Data &gameData, const Theme &theme) {
@@ -144,7 +156,7 @@ void nsScene::displayScene(MinGL &window, const Scene &scene) {
         window << text;
 }
 
-void nsScene::computeScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, map<string,string> &leaderboard, Scene &gameScene, nsSpaceInvaders::Data &gameData) {
+void nsScene::computeScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, map<string,string> &leaderboard, Scene &gameScene, nsSpaceInvaders::Data &gameData,map<string,string> &settings) {
     switch (currentScene) {
 
         case MAIN_MENU: {
@@ -160,18 +172,70 @@ void nsScene::computeScene(MinGL &window, const Theme &theme, Scene &scene, Scen
                 std::vector<string> leaderboard;
                 nsFile::getLeaderBoard(leaderboard);
             }
+            else if(nsButton::isPressed(window.getEventManager(), scene.buttons[2])){
+                currentScene = SETTINGS_MENU;
+            }
             break;
         }
 
         case SCORE_MENU: {
             if (nsButton::isPressed(window.getEventManager(), scene.buttons[0])) {currentScene = MAIN_MENU;}
+            break;
+        }
+
+        case SETTINGS_MENU: {
+            int themeCounter = 0;
+            string inputs = getPressedChars(window);
+            for (const char &pressed : inputs) {
+                string content = scene.texts[1].getContent();
+                if (pressed == '\b' && content.size())
+                    scene.texts[1].setContent(content.substr(0, content.size()-1));
+                else if (pressed != '\b' && content.size() < nsConsts::maxNameSize)
+                    scene.texts[1].setContent(content + pressed);
+            }
+            for(unsigned i = 0 ; i<scene.buttons.size()-2; ++i){        // -2 bc last 2 not keys
+                if (nsButton::isPressed(window.getEventManager(), scene.buttons[i])){
+                    string key =scene.buttons[i].text.getContent().substr(0,scene.buttons[i].text.getContent().size()-3);
+                    settings[key]=inputs[0];
+                    scene.buttons[i].text.setContent(key +":"+ settings[key]);
+                }
+            }
+            if(nsButton::isPressed(window.getEventManager(), scene.buttons[5])){
+
+                ++themeCounter%=4;
+                unsigned separator=scene.buttons[5].text.getContent().find(":");
+                settings["Theme"]=to_string(themeCounter);
+
+                switch (themeCounter) {
+                    case 0:{
+                        scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator)+"Base");
+                        break;
+                    }
+                    case 1:{
+                        scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator)+"Sky");
+                        break;
+                    }
+                    case 2:{
+                        scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator)+"Sea");
+                        break;
+                    }
+                    case 3:{
+                        scene.buttons[5].text.setContent(scene.buttons[5].text.getContent().substr(0,separator)+"Window vs Linux");
+                        break;
+                    }
+                }
+            }
+            if(nsButton::isPressed(window.getEventManager(), scene.buttons[6])){
+                nsFile::writeConfigFile(settings);
+                currentScene = MAIN_MENU;
+            }
         }
 
         case GAME: {
             if (nsButton::isPressed(window.getEventManager(), gameScene.buttons[0])) {currentScene = MAIN_MENU; return;}
 
             // Move entities
-            nsSpaceInvaders::playerMove(window, scene.entities);
+            nsSpaceInvaders::playerMove(window, scene.entities,settings); //passer en parametre settings pour touches
             nsSpaceInvaders::invadersMove(scene.entities, gameData.invadersLine);
             nsEntity::moveEntities(scene.entities, nsEntity::SHIP_BULLET);
             nsEntity::moveEntities(scene.entities, nsEntity::INVADER_BULLET);

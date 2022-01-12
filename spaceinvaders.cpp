@@ -31,12 +31,12 @@ void nsSpaceInvaders::initInvadersList(std::vector<nsEntity::Entity> &invaders, 
     }
 }
 
-void nsSpaceInvaders::playerMove(MinGL &window, std::vector<nsEntity::Entity> &entities) {
+void nsSpaceInvaders::playerMove(MinGL &window, std::vector<nsEntity::Entity> &entities,std::map<std::string,std::string> &settings) {
     for (nsEntity::Entity &entity : entities) {
 //    nsEntity::Entity player = std::find_if(entities.begin(),)
         if (entity.type == nsEntity::SHIP) {
-            entity.direction.setX(window.isPressed({'d', false}) - window.isPressed({'q', false}));
-            entity.direction.setY(window.isPressed({'s', false}) - window.isPressed({'z', false}));
+            entity.direction.setX(window.isPressed({settings["RightKey"][0], false}) - window.isPressed({settings["LeftKey"][0], false}));
+            entity.direction.setY(window.isPressed({settings["DownKey"][0], false}) - window.isPressed({settings["UpKey"][0], false}));
             moveEntities(entity);
             break;
         }
