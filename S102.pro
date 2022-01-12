@@ -8,6 +8,7 @@ SOURCES += \
         box.cpp \
         button.cpp \
         entity.cpp \
+        file.cpp \
         main.cpp \
         scene.cpp \
         spaceinvaders.cpp
@@ -18,5 +19,6 @@ HEADERS += \
     consts.h \
     entity.h \
     entity.h \
+    file.h \
     scene.h \
     spaceinvaders.h
