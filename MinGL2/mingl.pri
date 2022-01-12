@@ -11,7 +11,6 @@ SOURCES += \
     $$PWD/src/mingl.cpp \
     $$PWD/src/event/event_manager.cpp \
     $$PWD/src/shape/circle.cpp \
-    $$PWD/src/shape/dick.cpp \
     $$PWD/src/shape/line.cpp \
     $$PWD/src/shape/rectangle.cpp \
     $$PWD/src/shape/triangle.cpp \
@@ -35,7 +34,6 @@ HEADERS += \
     $$PWD/include/mingl/event/event.hpp \
     $$PWD/include/mingl/event/event_manager.h \
     $$PWD/include/mingl/shape/circle.h \
-    $$PWD/include/mingl/shape/dick.h \
     $$PWD/include/mingl/shape/line.h \
     $$PWD/include/mingl/shape/rectangle.h \
     $$PWD/include/mingl/shape/triangle.h \

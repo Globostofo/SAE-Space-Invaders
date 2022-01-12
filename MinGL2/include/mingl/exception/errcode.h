@@ -45,7 +45,6 @@ enum {
     kNoLine         = 304, /**< Pas de ligne */
     kNoRectangle    = 305, /**< Pas de rectangle */
     kNoCircle       = 306, /**< Pas de cercle */
-    kNoDick         = 307, /**< Pas de bite */
     kTypeNotFound   = 308, /**< Type non trouvé */
 };
 
@@ -58,7 +57,6 @@ const std::map <unsigned, std::string> kError
     {kNoLine, "Nombre incorrect de points pour la construction d'une ligne"},
     {kNoRectangle, "Nombre incorrect de points pour la construction d'un rectangle"},
     {kNoCircle, "Nombre incorrect de points pour la construction d'un cercle"},
-    {kNoDick, "Nombre incorrect de points pour la construction d'une bite"},
     {kTypeNotFound, "Instanciation impossible: Pas le bon type"},
 };
 
