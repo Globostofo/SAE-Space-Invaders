@@ -1,11 +1,13 @@
 #ifndef FILE_H
 #define FILE_H
 
-
 #include <iostream>
 #include <string>   //convert char type to std::string
+#include <vector>
 #include <map>      //store game themes
 #include <fstream>  //read Files
+
+#include "consts.h"
 
 namespace nsFile {
 
@@ -23,7 +25,7 @@ void getLeaderBoard(std::vector<std::string> &leaderBoard);
   * @param [in] score: le score fait par l'utilisateur
   * @fn void addScore(vector<string> &leaderBoard,string username, unsigned score)
 **/
-void addScore(std::vector<std::string> &leaderBoard,std::string username, std::unsigned score);
+void addScore(std::vector<std::string> &leaderBoard,std::string username, unsigned score);
 
 /*!
   * @brief fonction utilisé pour ecrire dans le fichier leaderBoard

@@ -11,6 +11,10 @@ namespace nsConsts {
 
 const nsGraphics::Vec2D WINSIZE(1280, 720);
 
+// Ressources
+const std::string config = "res/config.yaml";
+const std::string leaderboard = "res/leaderBoard.txt";
+
 // Backgrounds paths
 const std::string bg1 = "res/fond.si2";
 const std::string bg2 = "res/fond-ciel.si2";
@@ -56,6 +60,7 @@ const unsigned nbOfRowsInvaders = 3;
 const unsigned nbOfColumnsInvaders = 3;
 const unsigned nbOfShields = 4;
 const unsigned reloadTime = 1000;   // milliseconds
+const unsigned maxNameSize = 20;
 
 // Game points
 const unsigned invaderHurt = 10;
