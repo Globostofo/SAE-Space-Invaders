@@ -49,12 +49,18 @@ const nsGui::GlutFont::GlutFonts textFont = nsGui::GlutFont::BITMAP_9_BY_15;
 const nsGraphics::RGBAcolor btBgColor = nsGraphics::KSilver;
 const nsGraphics::RGBAcolor btBorderColor = nsGraphics::KBlack;
 
+// Game settings
+const int playerSpeed = 15;
 const unsigned nbLifes = 5;
 const unsigned nbOfRowsInvaders = 3;
 const unsigned nbOfColumnsInvaders = 3;
 const unsigned nbOfShields = 4;
-
 const unsigned reloadTime = 1000;   // milliseconds
+
+// Game points
+const unsigned invaderHurt = 10;
+const unsigned invaderDeath = 100;
+const unsigned levelClear = 500;
 
 } // namespace nsConsts
 

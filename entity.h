@@ -1,6 +1,7 @@
 #include <map>
 
 #include "box.h"
+#include "consts.h"
 
 #include "MinGL2/include/mingl/graphics/vec2d.h"
 #include "MinGL2/include/mingl/gui/sprite.h"
@@ -25,7 +26,7 @@ enum EntityType {
 const std::map<EntityType, std::vector<EntityType>> entitiesCollider {
     {SHIP,           {INVADER, INVADER_BULLET}},
     {SHIP_BULLET,    {SHIELD, INVADER, INVADER_BULLET}},
-    {SHIELD,         {SHIP_BULLET, INVADER_BULLET}},
+    {SHIELD,         {SHIP_BULLET, INVADER, INVADER_BULLET}},
     {INVADER,        {SHIP_BULLET}},
     {INVADER_BULLET, {SHIP, SHIP_BULLET, SHIELD}}
 }; // map entitiesCollider
@@ -103,7 +104,7 @@ void moveEntities(std::vector<Entity> &entityVec, const EntityType &type);
  * @param[in/out] entity2 : second entity to check
  * @fn void entitiesCollisions(Entity &entity1, Entity &entity2);
  */
-void entitiesCollisions(Entity &entity1, Entity &entity2);
+void entitiesCollisions(Entity &entity1, Entity &entity2, unsigned &score);
 
 /*!
  * @brief Procedure with just two loops to making collides each entity from first vector to each entity from second vector
@@ -111,13 +112,13 @@ void entitiesCollisions(Entity &entity1, Entity &entity2);
  * @param[in/out] entityVec2 : second vector to check
  * @fn void entitiesCollisions(std::vector<Entity> &entityVec1, std::vector<Entity> &entityVec2);
  */
-void entitiesCollisions(std::vector<Entity> &entityVec);
+void entitiesCollisions(std::vector<Entity> &entityVec, unsigned &score);
 
 /*!
  * @brief Procedure to remove entities from vector if its number of lifes is under 0 or if it's out of bounds
  * @param[in/out] entities : vector to check
  * @fn void deleteDiedEntities(std::vector<Entity> &entities);
  */
-void deleteDiedEntities(std::vector<Entity> &entities);
+void deleteDiedEntities(std::vector<Entity> &entities, unsigned &score);
 
 } // namespace nsEntity

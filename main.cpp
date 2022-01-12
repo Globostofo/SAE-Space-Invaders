@@ -141,7 +141,7 @@ int main() {
     chrono::microseconds frameTime = chrono::microseconds::zero();
 
     // Constantes qui tient le thème
-    const nsScene::Theme theme = nsScene::SKY;
+    const nsScene::Theme theme = nsScene::BASE;
 
     // Variable qui tient la scène à afficher
     SceneID currentScene = MAIN_MENU;

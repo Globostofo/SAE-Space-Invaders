@@ -37,26 +37,27 @@ void nsEntity::moveEntities(std::vector<Entity> &entityVec, const EntityType &ty
             moveEntities(entity);
 }
 
-void nsEntity::entitiesCollisions(Entity &entity1, Entity &entity2) {
+void nsEntity::entitiesCollisions(Entity &entity1, Entity &entity2, unsigned &score) {
     if (nsBox::areColliding(getEntityBox(entity1), getEntityBox(entity2))) {
         const std::vector<EntityType> whoHurts1 = entitiesCollider.find(entity1.type)->second;
         const std::vector<EntityType> whoHurts2 = entitiesCollider.find(entity2.type)->second;
         if (find(whoHurts1.begin(), whoHurts1.end(), entity2.type) != whoHurts1.end()) {
-            if (entity1.type == SHIP) std::cout << "hurt by " << entity2.type << std::endl;
+            // Adding score on invader hit
+            if (entity1.type == INVADER) score += nsConsts::invaderHurt;
             entity1.lifePoints -= 1;
         }
         if (find(whoHurts2.begin(), whoHurts2.end(), entity1.type) != whoHurts2.end()) {
-            if (entity2.type == SHIP) std::cout << "hurt by " << entity1.type << std::endl;
+            if (entity2.type == INVADER) score += nsConsts::invaderHurt;
             entity2.lifePoints -= 1;
         }
     }
 }
 
-void nsEntity::entitiesCollisions(std::vector<Entity> &entityVec) {
+void nsEntity::entitiesCollisions(std::vector<Entity> &entityVec, unsigned &score) {
     auto it1 = entityVec.begin();
     auto it2 = entityVec.begin()+1;
     do {
-        entitiesCollisions(*it1, *it2);
+        entitiesCollisions(*it1, *it2, score);
         if (it2 == entityVec.end()-1)
             it2 = it1++;
         else
@@ -64,8 +65,15 @@ void nsEntity::entitiesCollisions(std::vector<Entity> &entityVec) {
     } while (it1 != entityVec.end()-2);
 }
 
-void nsEntity::deleteDiedEntities(std::vector<Entity> &entities) {
+void nsEntity::deleteDiedEntities(std::vector<Entity> &entities, unsigned &score) {
     for (std::vector<Entity>::iterator it=entities.begin(); it<entities.end(); ++it)
-        if ((*it).lifePoints <= 0 || ((*it).canGoOutOfBounds && isOutOfBounds(*it)))
+        if ((*it).lifePoints <= 0 || ((*it).canGoOutOfBounds && isOutOfBounds(*it))) {
+
+            // Adding score on invader death
+            if ((*it).type == INVADER) {
+                score += nsConsts::invaderDeath;
+            }
+
             entities.erase(it);
+        }
 }

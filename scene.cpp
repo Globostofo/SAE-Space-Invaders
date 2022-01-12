@@ -111,6 +111,7 @@ void nsScene::initGameScene(Scene &scene, nsSpaceInvaders::Data &gameData, const
         gameData.lifePointsRemaining,
         nsBox::Box {nsGraphics::Vec2D(10, nsConsts::WINSIZE.getY()-spriteSize.getY()-100),
                     nsConsts::WINSIZE - spriteSize - nsGraphics::Vec2D(10,10)},
+        nsConsts::playerSpeed
     });
     nsSpaceInvaders::initShieldsList(entities, getShieldSpritePathByTheme(theme));
 
@@ -118,8 +119,11 @@ void nsScene::initGameScene(Scene &scene, nsSpaceInvaders::Data &gameData, const
     nsSpaceInvaders::initInvadersList(entities, getInvaderSpritePathByTheme(theme), gameData);
 
     scene.entities = entities;
+    scene.texts = {nsGui::Text(nsGraphics::Vec2D(nsConsts::WINSIZE.getX()-10, 10), to_string(gameData.score) + " pts", nsConsts::textColor, nsConsts::textFont, nsGui::Text::ALIGNH_RIGHT, nsGui::Text::ALIGNV_TOP),
+                  {nsGui::Text(nsGraphics::Vec2D(nsConsts::WINSIZE.getX()-10, 30), to_string(gameData.lifePointsRemaining) + "lives", nsConsts::textColor, nsConsts::textFont, nsGui::Text::ALIGNH_RIGHT, nsGui::Text::ALIGNV_TOP)}};
 
     ++gameData.round;
+    gameData.invadersLine = 0;
 }
 
 void nsScene::displayScene(MinGL &window, const Scene &scene) {
@@ -162,14 +166,22 @@ void nsScene::computeScene(MinGL &window, const Theme &theme, Scene &scene, Scen
             nsEntity::moveEntities(scene.entities, nsEntity::INVADER_BULLET);
 
             // Shoots
-            nsSpaceInvaders::playerShoot(window, scene.entities, gameData.canShoot, gameData.lastShot);
-            nsSpaceInvaders::invadersShoot(window, scene.entities, gameData.invadersCanShoot, gameData.invadersLastShot);
+            nsSpaceInvaders::playerShoot(window, scene.entities, gameData.round, gameData.canShoot, gameData.lastShot, getPlayerBulletSpritePathByTheme(theme));
+            nsSpaceInvaders::invadersShoot(window, scene.entities, gameData.invadersCanShoot, gameData.invadersLastShot, getInvaderBulletSpritePathByTheme(theme));
 
             // Check collisions
-            nsEntity::entitiesCollisions(scene.entities);
+            nsEntity::entitiesCollisions(scene.entities, gameData.score);
 
             // Delete all entities where lives=0
-            nsEntity::deleteDiedEntities(scene.entities);
+            nsEntity::deleteDiedEntities(scene.entities, gameData.score);
+
+            // Layout update
+            scene.texts[0].setContent(to_string(gameData.score) + " pts");
+            for (const nsEntity::Entity &entity : scene.entities)
+                if (entity.type == nsEntity::SHIP) {
+                    scene.texts[1].setContent(to_string(entity.lifePoints) + " lives");
+                    break;
+                }
 
             // End game
             bool hasLose = true;
@@ -190,6 +202,12 @@ void nsScene::computeScene(MinGL &window, const Theme &theme, Scene &scene, Scen
                     break;
                 }
             if (hasWon) {
+                gameData.score += nsConsts::levelClear * gameData.round;
+                for (const nsEntity::Entity &entity : scene.entities)
+                    if (entity.type == nsEntity::SHIP) {
+                        gameData.lifePointsRemaining = entity.lifePoints;
+                        break;
+                    }
                 initGameScene(scene, gameData, theme);
                 cout << "GG next level (" << gameData.round << ")" << endl;
             }

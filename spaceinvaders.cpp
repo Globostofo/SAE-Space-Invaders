@@ -13,7 +13,7 @@ void nsSpaceInvaders::initShieldsList(std::vector<nsEntity::Entity> &shields, co
 
 void nsSpaceInvaders::initInvadersList(std::vector<nsEntity::Entity> &invaders, const std::string &sprite, const Data &gameData) {
     nsGraphics::Vec2D spriteSize = nsGui::Sprite(sprite).computeSize();
-    for (unsigned i=0; i<std::max(nsConsts::nbOfRowsInvaders+2*gameData.round,(unsigned)12); ++i) {
+    for (unsigned i=0; i<std::min(nsConsts::nbOfRowsInvaders+2*gameData.round,(unsigned)12); ++i) {
         for (unsigned j=0; j<3; ++j) {
             nsGui::Sprite invaderSprite (sprite, nsGraphics::Vec2D(100*i, spriteSize.getY()*j));
             invaders.push_back(nsEntity::Entity {
@@ -23,7 +23,7 @@ void nsSpaceInvaders::initInvadersList(std::vector<nsEntity::Entity> &invaders, 
                                    3,
                                    nsBox::Box{nsGraphics::Vec2D(),
                                               nsConsts::WINSIZE-spriteSize},
-                                   2*(int)gameData.round,
+                                   (int)gameData.round/2+3,
                                    nsGraphics::Vec2D(1,0)
                                }
                                );
@@ -69,13 +69,26 @@ void nsSpaceInvaders::invadersMove(std::vector<nsEntity::Entity> &entities, unsi
     }
 
     case 0: {
+        // Lose if an invader reach bottom
+        for (nsEntity::Entity &entity : entities) {
+            if (entity.type == nsEntity::INVADER && entity.sprite.getPosition().getY()+entity.spriteSize.getY() == nsConsts::WINSIZE.getY()) {
+                for (nsEntity::Entity &entity2 : entities)
+                    if (entity2.type == nsEntity::SHIP) {
+                        entity2.lifePoints = 0;
+                        break;
+                    }
+                break;
+            }
+        }
+        // Change direction if an invader reach a new row
         for (nsEntity::Entity &entity : entities)
-            if (entity.type == nsEntity::INVADER)
+            if (entity.type == nsEntity::INVADER) {
                 if ((unsigned)entity.sprite.getPosition().getY() >= invadersLine * entity.spriteSize.getY()) {
                     if (invadersLine%2) nsEntity::setEntitiesDirection(entities, nsGraphics::Vec2D(-1), nsEntity::INVADER);
                     else nsEntity::setEntitiesDirection(entities, nsGraphics::Vec2D(1), nsEntity::INVADER);
-                    break;
                 }
+                break;
+            }
     }
 
     }
@@ -83,15 +96,15 @@ void nsSpaceInvaders::invadersMove(std::vector<nsEntity::Entity> &entities, unsi
     moveEntities(entities, nsEntity::INVADER);
 }
 
-void nsSpaceInvaders::playerShoot(MinGL &window, std::vector<nsEntity::Entity> &entities,
-                                  bool &canShoot, steady_clock::time_point &lastShot) {
+void nsSpaceInvaders::playerShoot(MinGL &window, std::vector<nsEntity::Entity> &entities, const unsigned &difficulty,
+                                  bool &canShoot, steady_clock::time_point &lastShot, const std::string &bulletPath) {
 
     if (canShoot && window.isPressed({' ',false})) {
         canShoot = false;
         lastShot = steady_clock::now();
         for (const nsEntity::Entity &entity : entities) {
             if (entity.type == nsEntity::SHIP) {
-                nsGui::Sprite bulletSprite (nsConsts::playerBulletSprite1, entity.sprite.getPosition());
+                nsGui::Sprite bulletSprite (bulletPath, entity.sprite.getPosition());
                 entities.push_back(
                             nsEntity::Entity {
                                 nsEntity::SHIP_BULLET,
@@ -109,12 +122,12 @@ void nsSpaceInvaders::playerShoot(MinGL &window, std::vector<nsEntity::Entity> &
         }
     }
 
-    else if (duration_cast<milliseconds>(steady_clock::now() - lastShot).count() >= nsConsts::reloadTime)
+    else if (duration_cast<milliseconds>(steady_clock::now() - lastShot).count() >= nsConsts::reloadTime-50*difficulty)
         canShoot = true;
 }
 
 void nsSpaceInvaders::invadersShoot(MinGL &window, std::vector<nsEntity::Entity> &entities,
-                                    bool &canShoot, steady_clock::time_point &lastShot) {
+                                    bool &canShoot, steady_clock::time_point &lastShot, const std::string &bulletPath) {
 
     if (canShoot) {
         canShoot = false;
@@ -123,7 +136,7 @@ void nsSpaceInvaders::invadersShoot(MinGL &window, std::vector<nsEntity::Entity>
         for (size_t i=0; i<entities.size(); ++i)
             if (entities[i].type == nsEntity::INVADER)
                 invadersRanks.push_back(i);
-        nsGui::Sprite bulletSprite (nsConsts::invaderBulletSprite1, entities[invadersRanks[rand()%invadersRanks.size()]].sprite.getPosition());
+        nsGui::Sprite bulletSprite (bulletPath, entities[invadersRanks[rand()%invadersRanks.size()]].sprite.getPosition());
         entities.push_back(
                     nsEntity::Entity {
                         nsEntity::INVADER_BULLET,

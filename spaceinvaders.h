@@ -66,8 +66,8 @@ void invadersMove(std::vector<nsEntity::Entity> &entities, unsigned &invadersLin
  * @param[in/out] lastShot : chrono to put delay to shots
  * @fn void playerShoot(MinGL &window, nsEntity::Entity &player, std::vector<nsEntity::Entity> &bullets, bool &canShoot, steady_clock::time_point &lastShot);
  */
-void playerShoot(MinGL &window, std::vector<nsEntity::Entity> &entities,
-                 bool &canShoot, steady_clock::time_point &lastShot);
+void playerShoot(MinGL &window, std::vector<nsEntity::Entity> &entities, const unsigned &difficulty,
+                 bool &canShoot, steady_clock::time_point &lastShot, const std::string &bulletPath);
 
 /*!
  * @brief Procedure to make invaders shoot
@@ -79,7 +79,7 @@ void playerShoot(MinGL &window, std::vector<nsEntity::Entity> &entities,
  * @fn void invadersShoot(MinGL &window, std::vector<nsEntity::Entity> &invaders, std::vector<nsEntity::Entity> &bullets, bool &canShoot, steady_clock::time_point &lastShot);
  */
 void invadersShoot(MinGL &window, std::vector<nsEntity::Entity> &entities,
-                   bool &canShoot, steady_clock::time_point &lastShot);
+                   bool &canShoot, steady_clock::time_point &lastShot, const std::string &bulletPath);
 
 
 } // namespace nsSpaceInvaders
