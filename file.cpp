@@ -5,7 +5,7 @@ using namespace std;
 void nsFile::getLeaderBoard(vector<string> &leaderBoard){
     //leaderBoard init to 10
     string score;
-    ifstream scoreFile ("leaderBoard.txt");
+    ifstream scoreFile (nsConsts::leaderboard);
     for(vector<string>::iterator iter = leaderBoard.begin(); iter !=leaderBoard.end(); ++iter){
         getline(scoreFile,score);
         (*iter)=score;
@@ -63,26 +63,41 @@ void nsFile::addScore(vector<string> &leaderBoard,string username, unsigned scor
 }//addScore()
 
 void nsFile::writeLeaderBoard(vector<string> &leaderBoard){
-    ofstream scoreFile ("leaderBoard.txt");
-    for(vector<string>::iterator iter = leaderBoard.begin() ; iter<leaderBoard.end(); ++iter){
+    ofstream scoreFile (nsConsts::leaderboard);
+    for(vector<string>::iterator iter = leaderBoard.begin() ; iter<leaderBoard.end(); ++iter)
         scoreFile<<*iter<<endl;
-    }
 }//writeLeaderBoard()
 
 void nsFile::readConfFile(map<string,string> &settings) {
 
-    ifstream configFile ("config.yaml");
+    ifstream configFile (nsConsts::config);
     string line;
 
     while(getline(configFile,line)){
-        unsigned separator=line.find(":");
-        settings[line.substr(0,separator-1)]=line.substr(separator+1,line.size()-2);
+
+        string value="";
+        string key="";
+        bool isSeparatorfound = false;
+
+        for(char letter : line){
+            if(letter == ':'){
+                isSeparatorfound = true;
+                continue;
+            }
+            if(isSeparatorfound){
+                value+=string(1,letter);
+            }
+            else{
+                key+=string(1,letter);
+            }
+        }
+        settings[key]=value;
     }
 } // readConfFile()
 
 void nsFile::writeConfigFile(map<string,string> &settings) {
 
-    ofstream ofs ("config.yaml");
+    ofstream ofs (nsConsts::config);
     for(map<string,string>::iterator iter = settings.begin(); iter!=settings.end(); ++iter){
         ofs<<(*iter).first<<":"<<(*iter).second<<endl;
     }

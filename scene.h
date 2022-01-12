@@ -18,9 +18,9 @@ enum Theme {
 
 enum SceneID {
     MAIN_MENU,
-    SETTINGS_MENU,
     SCORE_MENU,
-    GAME
+    GAME,
+    GAME_OVER_MENU
 };
 
 struct Scene {
@@ -30,11 +30,6 @@ struct Scene {
     std::vector<nsGui::Sprite> sprites;         // store all sprites (usefull to display player heart)
     std::vector<nsGui::Text> texts;             // store all texts (usefull to settings and to display player lives remaining
 }; // struct Scene
-
-//struct SceneManager {
-//    std::vector<Scene> scenes;
-//    unsigned
-//}; // struct SceneManager
 
 std::string getBgPathByTheme(const Theme &theme);
 
@@ -50,13 +45,15 @@ std::string getShieldSpritePathByTheme(const Theme &theme);
 
 nsGraphics::RGBAcolor getTextColorByTheme(const Theme &theme);
 
-void initMainMenu(Scene &scene);
+std::string getPressedChars(MinGL &window);
 
-void initSettingsMenu(Scene &scene);
+void initMainMenu(Scene &scene);
 
 void initScoreMenu(Scene &scene);
 
 void initGameScene(Scene &scene, nsSpaceInvaders::Data &gameData, const Theme &theme);
+
+void initGameOverScene(Scene &scene);
 
 void displayScene(MinGL &window, const Scene &scene);
 
