@@ -5,9 +5,10 @@ nsBox::Box nsEntity::getEntityBox(const Entity &entity) {
     return nsBox::Box {spritePos, spritePos+entity.spriteSize};
 }
 
-void nsEntity::setEntitiesDirection(std::vector<Entity> &entities, const nsGraphics::Vec2D &direction) {
+void nsEntity::setEntitiesDirection(std::vector<Entity> &entities, const nsGraphics::Vec2D &direction, const EntityType &type) {
     for (Entity &entity : entities)
-        entity.direction = direction;
+        if (entity.type == type)
+            entity.direction = direction;
 }
 
 void nsEntity::dispEntities(MinGL &window, const Entity &entity) {
@@ -30,9 +31,10 @@ void nsEntity::moveEntities(Entity &entity) {
     entity.sprite.setPosition(newPos);
 }
 
-void nsEntity::moveEntities(std::vector<Entity> &entityVec) {
+void nsEntity::moveEntities(std::vector<Entity> &entityVec, const EntityType &type) {
     for (Entity &entity : entityVec)
-        moveEntities(entity);
+        if (entity.type == type)
+            moveEntities(entity);
 }
 
 void nsEntity::entitiesCollisions(Entity &entity1, Entity &entity2) {
@@ -40,23 +42,26 @@ void nsEntity::entitiesCollisions(Entity &entity1, Entity &entity2) {
         const std::vector<EntityType> whoHurts1 = entitiesCollider.find(entity1.type)->second;
         const std::vector<EntityType> whoHurts2 = entitiesCollider.find(entity2.type)->second;
         if (find(whoHurts1.begin(), whoHurts1.end(), entity2.type) != whoHurts1.end()) {
+            if (entity1.type == SHIP) std::cout << "hurt by " << entity2.type << std::endl;
             entity1.lifePoints -= 1;
         }
         if (find(whoHurts2.begin(), whoHurts2.end(), entity1.type) != whoHurts2.end()) {
+            if (entity2.type == SHIP) std::cout << "hurt by " << entity1.type << std::endl;
             entity2.lifePoints -= 1;
         }
     }
 }
 
-void nsEntity::entitiesCollisions(Entity &entity1, std::vector<Entity> &entityVec2) {
-    for (Entity &entity2: entityVec2)
-        entitiesCollisions(entity1, entity2);
-}
-
-void nsEntity::entitiesCollisions(std::vector<Entity> &entityVec1,
-                        std::vector<Entity> &entityVec2) {
-    for (Entity &entity1 : entityVec1) for (Entity &entity2 : entityVec2)
-        entitiesCollisions(entity1, entity2);
+void nsEntity::entitiesCollisions(std::vector<Entity> &entityVec) {
+    auto it1 = entityVec.begin();
+    auto it2 = entityVec.begin()+1;
+    do {
+        entitiesCollisions(*it1, *it2);
+        if (it2 == entityVec.end()-1)
+            it2 = it1++;
+        else
+            ++it2;
+    } while (it1 != entityVec.end()-2);
 }
 
 void nsEntity::deleteDiedEntities(std::vector<Entity> &entities) {

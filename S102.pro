@@ -6,15 +6,17 @@ include(MinGL2/mingl.pri)
 
 SOURCES += \
         box.cpp \
+        button.cpp \
         entity.cpp \
         main.cpp \
-        menu.cpp \
+        scene.cpp \
         spaceinvaders.cpp
 
 HEADERS += \
     box.h \
+    button.h \
     consts.h \
     entity.h \
     entity.h \
-    menu.h \
+    scene.h \
     spaceinvaders.h
