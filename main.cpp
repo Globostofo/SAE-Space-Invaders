@@ -1,3 +1,12 @@
+/*!
+ *
+ * @file    main.cpp
+ * @author  Ceccarelli Luca - Clement Romain - Saadi Nils - Valls Marion
+ * @date    January 2022
+ * @brief
+ *
+ **/
+
 #define FPS_LIMIT 60
 
 #include <iostream>
@@ -12,7 +21,6 @@
 #include "scene.h"
 #include "box.h"
 #include "file.h"
-//#include "spaceinvaders.h"
 
 using namespace std;
 using namespace chrono;
@@ -23,24 +31,23 @@ using namespace nsScene;
 using namespace nsEntity;
 using namespace nsBox;
 using namespace nsFile;
-//using namespace nsSpaceInvaders;
 
 int main() {
     srand(time(NULL));
 
-    // Initialise le système
+    // Initialize the system
     MinGL window("S102 - Space Invaders", WINSIZE, Vec2D(850, 80), KBlack);
     window.initGlut();
     window.initGraphic();
 
-    // Variable qui tient le temps de frame
+    // Get the time of the frame
     chrono::microseconds frameTime = chrono::microseconds::zero();
 
-    // Settings provenant du yaml file
+    // Settings from the config.yaml file
     map<string,string> settings;
     nsFile::readConfFile(settings);
 
-    // Constantes qui tient le thème
+    // Consts of the current game theme
     nsScene::Theme theme;
     switch (stoi(settings["Theme"])) {
         case 0 :{theme =BASE; break; }
@@ -49,37 +56,43 @@ int main() {
         case 3 :{theme =WINDOWS; break; }
     }
 
-    // Variable qui tient la scène à afficher
+    // Variable that stocks the current scene we are in
     SceneID currentScene = MAIN_MENU;
 
-    // Instanciation et initialisations des scènes
+    // Initialization of the scenes
     Sprite bg(nsConsts::bgMenu);
+
     Scene sceneMainMenu {bg};
     initMainMenu(sceneMainMenu);
+
     Scene sceneScoreMenu {bg};
     initScoreMenu(sceneScoreMenu);
+
     Scene sceneGame {Sprite(getBgPathByTheme(theme))};
     nsSpaceInvaders::Data gameData;
+
     Scene sceneGameOver {bg};
     initGameOverScene(sceneGameOver);
-    vector<string> leaderboard; // passer en parametre que à init scene settings
+
+    vector<string> leaderboard;
+
     Scene sceneSettings {bg};
     initSettingsScene(sceneSettings,settings);
 
-    // On fait tourner la boucle tant que la fenêtre est ouverte
+    // Main loop
     while (window.isOpen()) {
 
-        // Récupère l'heure actuelle
+        // Get current time
         chrono::time_point<chrono::steady_clock> start = chrono::steady_clock::now();
 
-        // On efface la fenêtre
+        // Clear the screen
         window.clearScreen();
 
-        // On appelle la fonction de la scène correspondante
+        // We call the function corresponding to the current scene
         switch (currentScene) {
 
             case MAIN_MENU: {
-                computeMainMenu(window, theme, sceneMainMenu, currentScene, sceneGame, gameData);
+                computeMainMenu(window, theme, sceneMainMenu, currentScene, sceneGame,sceneScoreMenu, gameData);
                 break;
             }
             case SCORE_MENU: {
@@ -87,7 +100,7 @@ int main() {
                 break;
             }
             case SETTINGS_MENU: {
-                computeSettingsMenu(window, sceneSettings, currentScene, settings);
+                computeSettingsMenu(window,theme, sceneSettings, currentScene, settings);
                 break;
             }
             case GAME: {
@@ -101,19 +114,19 @@ int main() {
 
         }
 
-        // On vide le buffer
+        // Empty the buffer
         window.getEventManager().clearEvents();
 
-        // On finit la frame en cours
+        // Finish current frame
         window.finishFrame();
 
-        // On attend un peu pour limiter le framerate et soulager le CPU
+        // We wait because i dont want to fry eggs on my CPU
         this_thread::sleep_for(chrono::milliseconds(1000 / FPS_LIMIT) - chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start));
 
-        // On récupère le temps de frame
+        // Get the frame time
         frameTime = chrono::duration_cast<chrono::microseconds>(chrono::steady_clock::now() - start);
 
     }
 
     return 0;
-}
+}// main

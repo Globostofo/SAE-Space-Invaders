@@ -1,3 +1,12 @@
+/*!
+ *
+ * @file    button.h
+ * @author  Ceccarelli Luca - Clement Romain - Saadi Nils - Valls Marion
+ * @date    January 2022
+ * @brief   Buttons Management
+ *
+ **/
+
 #ifndef BUTTON_H
 #define BUTTON_H
 
@@ -10,11 +19,12 @@
 
 #include "consts.h"
 
+
 namespace nsButton {
 
 /*!
-  * @struct structure contenant l'element button
-  * @fn button{std::string content, int buttonId,  nsGraphics::RGBAcolor bgColor,  nsGraphics::RGBAcolor borderColor,  nsGraphics::RGBAcolor textColor }
+  * @struct struct containing the button element
+  * @brief struct button : place and center the text in content, into a Rectangle
 **/
 struct Button {
     std::string content;    // just used for initialization
@@ -32,34 +42,36 @@ struct Button {
 }; // struct Button
 
 /*!
-  * @brief fonction pour verifier si on appuye sur la fenetre de jeu et si un bouton est concerné
+  * @brief function used to verify if a button is pressed
   * @param[in/out] EventManager
-  * @param[in] btns : vecteur contenant les boutons
-  * @fn int events(nsEvent::EventManager &eventM, const std::vector<button> &btns)
+  * @param[in] btn : button
+  * @fn bool isPressed(nsEvent::EventManager &eventM, const Button &bt)
 **/
 bool isPressed(nsEvent::EventManager &eventM, const Button &bt);
 
-nsGraphics::Vec2D getSize(const Button &bt);
-
+/*!
+  * @brief procedure used to move the position of a button
+  * @param[in/out] EventManager
+  * @param[in] btns : list containing the buttons
+  * @fn int events(nsEvent::EventManager &eventM, const std::vector<button> &btns)
+**/
 void setPosition(Button &bt, const nsGraphics::Vec2D &position);
 
 /*!
-  * @brief fonction pour placer des boutons centrés horizontalement et verticalement
-  * @param[in/out] window : fenetre
-  * @param[in] b : vecteur de struct contenant le texte à afficher et la couleur dans laquelle l'afficher
-  * @param[in] width : largeur de la fenetre
-  * @param[in] height : hauteur de la fenetre
+  * @brief procedure used to place des buttons aligned horizontally and vertically
+  * @param[in] btns : list containing the buttons
+  * @fn void placeBtns(std::vector<Button> &btns)
 **/
 void placeBtns(std::vector<Button> &btns);
 
 /*!
-  * @brief fonction utilisé pour afficher les boutons dans la fenetre : window
+  * @brief procedure used to draw the buttons on the window
   * @param[in/out] window
-  * @param[in] btns : vecteur contenant la liste des boutons à afficher
+  * @param[in] btns : list containing the buttons to draw
   * @fn void drawBtns(MinGL &window, const std::vector<button> &btns)
 **/
 void drawBtns(MinGL &window, const std::vector<Button> &btns);
 
-}
+}// namespace nsButton
 
 #endif // BUTTON_H

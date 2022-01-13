@@ -1,3 +1,12 @@
+/*!
+ *
+ * @file    spaceInvaders.cpp
+ * @author  Ceccarelli Luca - Clement Romain - Saadi Nils - Valls Marion
+ * @date    January 2022
+ * @brief   SpaceInvaders Game
+ *
+ **/
+
 #include "spaceinvaders.h"
 
 void nsSpaceInvaders::initShieldsList(std::vector<nsEntity::Entity> &shields, const std::string &sprite) {
@@ -29,11 +38,10 @@ void nsSpaceInvaders::initInvadersList(std::vector<nsEntity::Entity> &invaders, 
                                );
         }
     }
-}
+}// initInvadersList
 
-void nsSpaceInvaders::playerMove(MinGL &window, std::vector<nsEntity::Entity> &entities,std::map<std::string,std::string> &settings) {
+void nsSpaceInvaders::playerMove(MinGL &window, std::vector<nsEntity::Entity> &entities,std::map<std::string,std::string> settings) {
     for (nsEntity::Entity &entity : entities) {
-//    nsEntity::Entity player = std::find_if(entities.begin(),)
         if (entity.type == nsEntity::SHIP) {
             entity.direction.setX(window.isPressed({settings["RightKey"][0], false}) - window.isPressed({settings["LeftKey"][0], false}));
             entity.direction.setY(window.isPressed({settings["DownKey"][0], false}) - window.isPressed({settings["UpKey"][0], false}));
@@ -41,7 +49,7 @@ void nsSpaceInvaders::playerMove(MinGL &window, std::vector<nsEntity::Entity> &e
             break;
         }
     }
-}
+}// playerMove
 
 void nsSpaceInvaders::invadersMove(std::vector<nsEntity::Entity> &entities, unsigned &invadersLine) {
     // all invaders have same direction (we fix -1 for left, 0 for down, 1 for right) that's used only in this function
@@ -94,7 +102,7 @@ void nsSpaceInvaders::invadersMove(std::vector<nsEntity::Entity> &entities, unsi
     }
 
     moveEntities(entities, nsEntity::INVADER);
-}
+}// invadersMove
 
 void nsSpaceInvaders::playerShoot(MinGL &window, std::vector<nsEntity::Entity> &entities, const unsigned &difficulty,
                                   bool &canShoot, steady_clock::time_point &lastShot, const std::string &bulletPath) {
@@ -124,7 +132,7 @@ void nsSpaceInvaders::playerShoot(MinGL &window, std::vector<nsEntity::Entity> &
 
     else if (duration_cast<milliseconds>(steady_clock::now() - lastShot).count() >= nsConsts::reloadTime-50*difficulty)
         canShoot = true;
-}
+}// playerShoot
 
 void nsSpaceInvaders::invadersShoot(MinGL &window, std::vector<nsEntity::Entity> &entities,
                                     bool &canShoot, steady_clock::time_point &lastShot, const std::string &bulletPath) {
@@ -154,4 +162,4 @@ void nsSpaceInvaders::invadersShoot(MinGL &window, std::vector<nsEntity::Entity>
 
     else if (duration_cast<milliseconds>(steady_clock::now() - lastShot).count() >= nsConsts::reloadTime)
         canShoot = true;
-}
+}// invadersShoot

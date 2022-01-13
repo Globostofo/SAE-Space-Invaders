@@ -1,3 +1,11 @@
+/*!
+ *
+ * @file    scene.cpp
+ * @author  Ceccarelli Luca - Clement Romain - Saadi Nils - Valls Marion
+ * @date    January 2022
+ * @brief   Scene Management
+ *
+ **/
 #include "scene.h"
 #include "file.h"
 
@@ -14,7 +22,7 @@ string nsScene::getBgPathByTheme(const Theme &theme) {
         case WINDOWS:
             return nsConsts::bg4;
     }
-}
+}//getBgPathByTheme
 
 string nsScene::getPlayerSpritePathByTheme(const Theme &theme) {
     switch (theme) {
@@ -27,7 +35,7 @@ string nsScene::getPlayerSpritePathByTheme(const Theme &theme) {
         case WINDOWS:
             return nsConsts::playerSprite4;
     }
-}
+}//getPlayerSpritePathByTheme
 
 string nsScene::getInvaderSpritePathByTheme(const Theme &theme) {
     switch (theme) {
@@ -40,7 +48,7 @@ string nsScene::getInvaderSpritePathByTheme(const Theme &theme) {
         case WINDOWS:
             return nsConsts::invaderSprite4;
     }
-}
+}//getInvaderSpritePathByTheme
 
 string nsScene::getPlayerBulletSpritePathByTheme(const Theme &theme) {
     switch (theme) {
@@ -51,7 +59,7 @@ string nsScene::getPlayerBulletSpritePathByTheme(const Theme &theme) {
         case WINDOWS:
             return nsConsts::playerBulletSprite2;
     }
-}
+}//getPlayerBulletSpritePathByTheme
 
 string nsScene::getInvaderBulletSpritePathByTheme(const Theme &theme) {
     switch (theme) {
@@ -62,7 +70,7 @@ string nsScene::getInvaderBulletSpritePathByTheme(const Theme &theme) {
         case WINDOWS:
             return nsConsts::invaderBulletSprite2;
     }
-}
+}//getInvaderBulletSpritePathByTheme
 
 string nsScene::getShieldSpritePathByTheme(const Theme &theme) {
     switch (theme) {
@@ -73,7 +81,7 @@ string nsScene::getShieldSpritePathByTheme(const Theme &theme) {
         case WINDOWS:
             return nsConsts::shieldSprite2;
     }
-}
+}//getShieldSpritePathByTheme
 
 string nsScene::getPressedChars(MinGL &window, const bool isReset) {
     string alphabet = " abcdefghijklmnopqrstuvwxyz\b";
@@ -85,13 +93,13 @@ string nsScene::getPressedChars(MinGL &window, const bool isReset) {
                 window.resetKey(MinGL::KeyType_t({let, false}));
         }
     return output;
-} // getLastPressedChar()
+} // getLastPressedChar
 
 void nsScene::initMainMenu(Scene &scene) {
     vector<nsButton::Button> btns = {{"Play"}, {"LeaderBoard"},{"Settings"}};
     nsButton::placeBtns(btns);
     scene.buttons = btns;
-}
+}//initMainMenu
 
 void nsScene::initScoreMenu(Scene &scene) {
     vector<string> leaderboard(10);
@@ -103,7 +111,7 @@ void nsScene::initScoreMenu(Scene &scene) {
     btns[leaderboard.size()]={"Back"};
     nsButton::placeBtns(btns);
     scene.buttons = btns;
-}
+}//initScoreMenu
 
 void nsScene::initSettingsScene(Scene &scene, map<string,string> &settings){
     map<string,string> scenes;
@@ -122,9 +130,10 @@ void nsScene::initSettingsScene(Scene &scene, map<string,string> &settings){
     nsButton::placeBtns(btns);
     scene.buttons = btns;
     scene.texts = {nsGui::Text(nsGraphics::Vec2D(10,10), "Press the key and the button\nsimultaneously to change the setting", nsGraphics::KWhite, nsConsts::textFont, nsGui::Text::ALIGNH_LEFT,nsGui::Text::ALIGNV_TOP)};
-}
+}//initSettingsScene
 
 void nsScene::initGameScene(Scene &scene, nsSpaceInvaders::Data &gameData, const Theme &theme) {
+    scene.background= nsGui::Sprite(getBgPathByTheme(theme));
     nsButton::Button bt {"Exit"};
     nsButton::setPosition(bt, nsGraphics::Vec2D(67,48));
     scene.buttons = {bt};
@@ -152,7 +161,7 @@ void nsScene::initGameScene(Scene &scene, nsSpaceInvaders::Data &gameData, const
 
     ++gameData.round;
     gameData.invadersLine = 0;
-}
+}//initGameScene
 
 void nsScene::initGameOverScene(Scene &scene) {
     vector<nsButton::Button> btns {{"Play again"}, {"Main menu"}};
@@ -160,7 +169,7 @@ void nsScene::initGameOverScene(Scene &scene) {
     scene.buttons = btns;
     scene.texts = {nsGui::Text(nsConsts::WINSIZE/2, "Enter your name :", nsConsts::textColor, nsConsts::textFont, nsGui::Text::ALIGNH_CENTER),
                    nsGui::Text(nsConsts::WINSIZE/2, "", nsConsts::textColor, nsConsts::textFont, nsGui::Text::ALIGNH_CENTER, nsGui::Text::ALIGNV_TOP)};
-}
+}//initGameOverScene
 
 void nsScene::displayScene(MinGL &window, const Scene &scene) {
     window << scene.background;
@@ -168,9 +177,9 @@ void nsScene::displayScene(MinGL &window, const Scene &scene) {
     nsButton::drawBtns(window, scene.buttons);
     for (const nsGui::Text &text : scene.texts)
         window << text;
-}
+}//displayScene
 
-void nsScene::computeMainMenu(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, Scene &gameScene, nsSpaceInvaders::Data &gameData) {
+void nsScene::computeMainMenu(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, Scene &gameScene, Scene &scoreScene,nsSpaceInvaders::Data &gameData) {
     if (nsButton::isPressed(window.getEventManager(), scene.buttons[0])) {
         currentScene = GAME;
         gameData.round = 0;
@@ -180,26 +189,23 @@ void nsScene::computeMainMenu(MinGL &window, const Theme &theme, Scene &scene, S
     }
     else if (nsButton::isPressed(window.getEventManager(), scene.buttons[1])) {
         currentScene = SCORE_MENU;
-        std::vector<string> leaderboard;
-        nsFile::getLeaderBoard(leaderboard);
+        initScoreMenu(scoreScene);
     }
     else if(nsButton::isPressed(window.getEventManager(), scene.buttons[2])){
         currentScene = SETTINGS_MENU;
     }
     displayScene(window, scene);
-}
+}//computeMainMenu
 
 void nsScene::computeScoreMenu(MinGL &window, Scene &scene, SceneID &currentScene) {
     if (nsButton::isPressed(window.getEventManager(), scene.buttons[10]))
         currentScene = MAIN_MENU;
     displayScene(window, scene);
-}
+}//computeScoreMenu
 
-void nsScene::computeSettingsMenu(MinGL &window, Scene &scene, SceneID &currentScene, map<string,string> settings) {
+void nsScene::computeSettingsMenu(MinGL &window,Theme &theme, Scene &scene, SceneID &currentScene, map<string,string> &settings) {
     int themeCounter = stoi(settings["Theme"]);
-
     string inputs = getPressedChars(window,false);
-    cout<<inputs<<endl;
     if(inputs.size()>0){
         for(unsigned i = 0 ; i<scene.buttons.size()-2; ++i){        // -2 bc last 2 not keys
             if (nsButton::isPressed(window.getEventManager(), scene.buttons[i])){
@@ -236,10 +242,17 @@ void nsScene::computeSettingsMenu(MinGL &window, Scene &scene, SceneID &currentS
     }
     if(nsButton::isPressed(window.getEventManager(), scene.buttons[6])){
         nsFile::writeConfigFile(settings);
+
+        switch (stoi(settings["Theme"])) {
+            case 0 :{theme =BASE; break; }
+            case 1 :{theme =SKY; break; }
+            case 2 :{theme =SEA; break; }
+            case 3 :{theme =WINDOWS; break; }
+        }
         currentScene = MAIN_MENU;
     }
     displayScene(window, scene);
-}
+}//computeSettingsMenu
 
 void nsScene::computeGameScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, nsSpaceInvaders::Data &gameData, map<string,string> settings) {
     if (nsButton::isPressed(window.getEventManager(), scene.buttons[0])) {currentScene = MAIN_MENU; return;}
@@ -276,7 +289,7 @@ void nsScene::computeGameScene(MinGL &window, const Theme &theme, Scene &scene, 
             break;
         }
     if (hasLose) {
-        cout << "YOU LOSE NOOB" << endl;
+        cout << "YOU LOST" << endl;
         currentScene = GAME_OVER_MENU;
     }
 
@@ -299,7 +312,7 @@ void nsScene::computeGameScene(MinGL &window, const Theme &theme, Scene &scene, 
 
     // Disaplay scene
     displayScene(window, scene);
-}
+}//computeGameScene
 
 void nsScene::computeGameOverScene(MinGL &window, const Theme &theme, Scene &scene, SceneID &currentScene, nsSpaceInvaders::Data &gameData) {
     if (nsButton::isPressed(window.getEventManager(), scene.buttons[0])) {
@@ -334,4 +347,4 @@ void nsScene::computeGameOverScene(MinGL &window, const Theme &theme, Scene &sce
     }
 
     displayScene(window, scene);
-}
+}//computeGameOverScene

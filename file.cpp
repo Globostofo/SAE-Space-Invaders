@@ -1,9 +1,17 @@
+/*!
+ *
+ * @file    file.cpp
+ * @author  Ceccarelli Luca - Clement Romain - Saadi Nils - Valls Marion
+ * @date    January 2022
+ * @brief   File Management
+ *
+ **/
+
 #include "file.h"
 
 using namespace std;
 
 void nsFile::getLeaderBoard(vector<string> &leaderBoard){
-    //leaderBoard init to 10
     string score;
     ifstream scoreFile (nsConsts::leaderboard);
     for(vector<string>::iterator iter = leaderBoard.begin(); iter !=leaderBoard.end(); ++iter){
@@ -62,7 +70,7 @@ void nsFile::addScore(vector<string> &leaderBoard,string username, unsigned scor
     }
 }//addScore()
 
-void nsFile::writeLeaderBoard(vector<string> &leaderBoard){
+void nsFile::writeLeaderBoard(vector<string> leaderBoard){
     ofstream scoreFile (nsConsts::leaderboard);
     for(vector<string>::iterator iter = leaderBoard.begin() ; iter<leaderBoard.end(); ++iter)
         scoreFile<<*iter<<endl;
@@ -95,7 +103,7 @@ void nsFile::readConfFile(map<string,string> &settings) {
     }
 } // readConfFile()
 
-void nsFile::writeConfigFile(map<string,string> &settings) {
+void nsFile::writeConfigFile(map<string,string> settings) {
 
     ofstream ofs (nsConsts::config);
     for(map<string,string>::iterator iter = settings.begin(); iter!=settings.end(); ++iter){

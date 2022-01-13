@@ -1,41 +1,50 @@
+/*!
+ *
+ * @file    entity.cpp
+ * @author  Ceccarelli Luca - Clement Romain - Saadi Nils - Valls Marion
+ * @date    January 2022
+ * @brief   Management of Entities
+ *
+ **/
+
 #include "entity.h"
 
 nsBox::Box nsEntity::getEntityBox(const Entity &entity) {
     nsGraphics::Vec2D spritePos = entity.sprite.getPosition();
     return nsBox::Box {spritePos, spritePos+entity.spriteSize};
-}
+}// getEntityBox
 
 void nsEntity::setEntitiesDirection(std::vector<Entity> &entities, const nsGraphics::Vec2D &direction, const EntityType &type) {
     for (Entity &entity : entities)
         if (entity.type == type)
             entity.direction = direction;
-}
+}// setEntitiesDirection
 
 void nsEntity::dispEntities(MinGL &window, const Entity &entity) {
     window << entity.sprite;
-}
+}// dispEntities
 
 void nsEntity::dispEntities(MinGL &window, const std::vector<Entity> &entityVec) {
     for (const Entity &entity : entityVec)
         dispEntities(window, entity);
-}
+}// dispEntities
 
 bool nsEntity::isOutOfBounds(const Entity &entity) {
     return entity.canGoOutOfBounds && !nsBox::areColliding(entity.bounds, getEntityBox(entity));
-}
+}// isOutOfBounds
 
 void nsEntity::moveEntities(Entity &entity) {
     nsGraphics::Vec2D newPos = entity.sprite.getPosition() + entity.direction.toSize(entity.speed);
     if (!entity.canGoOutOfBounds)
         nsBox::clampInBox(newPos, entity.bounds);
     entity.sprite.setPosition(newPos);
-}
+}// moveEntities
 
 void nsEntity::moveEntities(std::vector<Entity> &entityVec, const EntityType &type) {
     for (Entity &entity : entityVec)
         if (entity.type == type)
             moveEntities(entity);
-}
+}// moveEntities
 
 void nsEntity::entitiesCollisions(Entity &entity1, Entity &entity2, unsigned &score) {
     if (nsBox::areColliding(getEntityBox(entity1), getEntityBox(entity2))) {
@@ -51,7 +60,7 @@ void nsEntity::entitiesCollisions(Entity &entity1, Entity &entity2, unsigned &sc
             entity2.lifePoints -= 1;
         }
     }
-}
+}// entitiesCollisions
 
 void nsEntity::entitiesCollisions(std::vector<Entity> &entityVec, unsigned &score) {
     auto it1 = entityVec.begin();
@@ -63,7 +72,7 @@ void nsEntity::entitiesCollisions(std::vector<Entity> &entityVec, unsigned &scor
         else
             ++it2;
     } while (it1 != entityVec.end()-2);
-}
+}// entitiesCollisions
 
 void nsEntity::deleteDiedEntities(std::vector<Entity> &entities, unsigned &score) {
     for (std::vector<Entity>::iterator it=entities.begin(); it<entities.end(); ++it)
@@ -76,4 +85,4 @@ void nsEntity::deleteDiedEntities(std::vector<Entity> &entities, unsigned &score
 
             entities.erase(it);
         }
-}
+}// deleteDiedEntities

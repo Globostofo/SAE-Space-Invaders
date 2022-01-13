@@ -1,9 +1,18 @@
+/*!
+ *
+ * @file    button.cpp
+ * @author  Ceccarelli Luca - Clement Romain - Saadi Nils - Valls Marion
+ * @date    January 2022
+ * @brief   Buttons Management
+ *
+ **/
+
 #include "button.h"
 
 using namespace std;
 
 bool nsButton::isPressed(nsEvent::EventManager &eventM, const Button &bt) {
-    // On vérifie chaque évènement de la queue d'évènements
+    // We check if there are events in the eventmanager
 
     for (size_t i=0; i<eventM.eventsCount(); ++i) {
 
@@ -30,7 +39,7 @@ void nsButton::setPosition(Button &bt, const nsGraphics::Vec2D &position) {
     bt.rect.setFirstPosition(position-rectSize/2);
     bt.rect.setSecondPosition(position+rectSize/2);
     bt.text.setPosition(position);
-}
+}// setPosition()
 
 void nsButton::placeBtns(vector<Button> &btns) {
     size_t nb_btns = btns.size();

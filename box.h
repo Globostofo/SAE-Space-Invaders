@@ -1,3 +1,12 @@
+/*!
+ *
+ * @file    box.h
+ * @author  Ceccarelli Luca - Clement Romain - Saadi Nils - Valls Marion
+ * @date    January 2022
+ * @brief   Boxes Management
+ *
+ **/
+
 #ifndef BOX_H
 #define BOX_H
 

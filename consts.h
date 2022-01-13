@@ -1,3 +1,12 @@
+/*!
+ *
+ * @file    consts.h
+ * @author  Ceccarelli Luca - Clement Romain - Saadi Nils - Valls Marion
+ * @date    January 2022
+ * @brief   Constants
+ *
+ **/
+
 #ifndef CONSTS_H
 #define CONSTS_H
 
